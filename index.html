@@ -719,6 +719,10 @@ tr.flash,.flash{animation:fl 1.2s ease-out}
 
 <script>
 "use strict";
+   const SUPABASE_URL = "https://unbbfygomlgigqekxogp.supabase.co";
+const SUPABASE_ANON_KEY = "SIZNING_PUBLISHABLE_KALITINGIZ"; // Supabase'dan nusxalangan kalitni qo'ying
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+   
 /* =====================================================================
    DCRM — DINOV savdo platformasi
    Bitta fayl. Ma'lumot qatlami API obyektida ajratilgan — Firebase/REST
@@ -2091,12 +2095,54 @@ async function load() {
     if (r) r.addEventListener("click", () => { setBusy(r, true, "Yuklanmoqda…"); load(); });
   } finally { Prog.done(); }
 }
-function boot() {
-  paintMe();
+async function boot() {
   bind();
+  
+  // Login tugmasi hodisasi
+  const loginBtn = $("#loginBtn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async () => {
+      const email = $("#loginEmail").value.trim();
+      const password = $("#loginPass").value.trim();
+      const errBox = $("#loginErr");
+
+      errBox.style.display = "none";
+      setBusy(loginBtn, true, "Tekshirilmoqda…");
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errBox.textContent = "Email yoki parol noto'g'ri!";
+        errBox.style.display = "block";
+        setBusy(loginBtn, false);
+      } else {
+        $("#authScreen").style.display = "none";
+        initUser(data.user);
+      }
+    });
+  }
+
+  // Sessiyani tekshirish
+  const { data: { session } } = await sb.auth.getSession();
   const b = $("#boot");
   if (b) b.remove();
+
+  if (session) {
+    $("#authScreen").style.display = "none";
+    initUser(session.user);
+  } else {
+    $("#authScreen").style.display = "flex";
+  }
+
   try { history.replaceState({ view: "deals" }, "", location.pathname + location.search); } catch (e) {}
+}
+
+async function initUser(user) {
+  const { data: profile } = await sb.from("profiles").select("*").eq("id", user.id).single();
+  if (profile) {
+    ME = { id: profile.id, name: profile.full_name, role: profile.role };
+  }
+  paintMe();
   load();
 }
 requestAnimationFrame(() => setTimeout(boot, 0));
