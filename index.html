@@ -464,12 +464,36 @@ tr.flash,.flash{animation:fl 1.2s ease-out}
   .col{flex:0 0 232px}
 }
 </style>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="prog" id="prog"></div>
 <div class="boot" id="boot"><div class="bm">D</div><div>DCRM yuklanmoqda…</div></div>
+<div id="authScreen" style="position:fixed;inset:0;background:#0A1730;z-index:999;display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;padding:32px;border-radius:16px;width:100%;max-width:380px;box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:48px;height:48px;background:#2B5CE6;color:#fff;border-radius:12px;display:inline-grid;place-items:center;font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif;">D</div>
+      <h2 style="font-size:20px;font-weight:700;margin-top:12px;color:#0C1628;">DCRM tizimiga kirish</h2>
+      <p style="font-size:12.5px;color:#69769A;margin-top:4px;">Email va parolingizni kiriting</p>
+    </div>
+    
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11.5px;font-weight:700;color:#69769A;margin-bottom:6px;">EMAIL</label>
+      <input type="email" id="loginEmail" placeholder="nomingiz@dcrm.uz" style="width:100%;padding:11px 13px;border:1px solid #DEE6F4;border-radius:10px;font-size:14px;outline:none;">
+    </div>
 
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:11.5px;font-weight:700;color:#69769A;margin-bottom:6px;">PAROL</label>
+      <input type="password" id="loginPass" placeholder="••••••••" style="width:100%;padding:11px 13px;border:1px solid #DEE6F4;border-radius:10px;font-size:14px;outline:none;">
+    </div>
+
+    <div id="loginErr" style="color:#DC2B26;font-size:12px;font-weight:600;margin-bottom:12px;display:none;"></div>
+
+    <button id="loginBtn" style="width:100%;background:#2B5CE6;color:#fff;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;">Tizimga kirish</button>
+  </div>
+</div>
+   
 <!-- ======================= SIDEBAR ======================= -->
 <aside class="sidebar" id="sidebar">
   <div class="brand">
