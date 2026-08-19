@@ -2112,7 +2112,7 @@ async function boot() {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
       if (error) {
-        errBox.textContent = "Email yoki parol noto'g'ri!";
+        errBox.textContent = error.message;
         errBox.style.display = "block";
         setBusy(loginBtn, false);
       } else {
