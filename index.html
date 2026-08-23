@@ -172,7 +172,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:poin
 .stage{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;color:#fff;font-size:11px;
   font-weight:700;letter-spacing:.03em;white-space:nowrap;background:var(--slate);transition:background .25s}
 .s-yangi{background:var(--blue)}.s-ishlov{background:var(--warn)}.s-qaror{background:var(--violet)}
-.s-buyurtma{background:var(--sky)}.s-muvaf{background:var(--ok)}.s-javob{background:var(--slate)}.s-rad{background:var(--danger)}
+.s-buyurtma{background:var(--sky)}.s-yetkaz{background:#65A30D}.s-muvaf{background:var(--ok)}
+.s-javob{background:var(--slate)}.s-bekor{background:#881337}.s-rad{background:var(--danger)}
 .empty{padding:54px 20px;text-align:center;color:var(--muted);line-height:1.75;font-size:13.5px}
 .empty .big{font-size:26px;margin-bottom:10px;opacity:.35}
 
@@ -450,6 +451,21 @@ tbody tr.stage-row .nm{font-weight:600}
 .nm-stage{display:none}
 .board .card{border-left:4px solid var(--rc)}
 
+/* ============================ PANEL ICHIDA TAHRIRLASH ============================ */
+.panel.editing{box-shadow:0 0 0 2px var(--blue) inset;border-radius:14px}
+.ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.ed-grid .full{grid-column:1 / -1}
+.ed-f label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.09em;color:var(--muted);margin-bottom:5px}
+.ed-f input,.ed-f select{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 11px;
+  font-size:13.5px;background:var(--paper);color:var(--text)}
+.ed-f input:focus,.ed-f select:focus{border-color:var(--blue)}
+.ed-f input.bad{border-color:var(--danger);background:#FEF4F3}
+.ed-bar{display:flex;gap:8px;align-items:center;padding:12px 0 2px;position:sticky;bottom:0;
+  background:linear-gradient(to top,var(--paper) 72%,transparent);margin-top:4px}
+.ed-bar .grow{flex:1}
+.ed-note{font-size:11.5px;color:var(--muted);font-weight:600}
+@media(max-width:720px){ .ed-grid{grid-template-columns:1fr} }
+
 /* ============================ IKONKALAR (SVG) ============================ */
 svg{display:block;flex-shrink:0}
 .nav-item .ic{display:grid;place-items:center;width:18px;height:18px}
@@ -682,6 +698,8 @@ if (!window.supabase) document.write('<scr' + 'ipt src="https://esm.sh/@supabase
         <span><b class="num" id="bulkN">0</b> ta tanlandi</span>
         <select id="bulkStage" aria-label="Yangi bosqich"></select>
         <button class="mini solid" id="bulkApply">Bosqichni qo'llash</button>
+        <select id="bulkOwner" aria-label="Yangi mas'ul"></select>
+        <button class="mini solid" id="bulkMove">Mas'ulga o'tkazish</button>
         <button class="mini danger" id="bulkDel">O'chirish</button>
         <button class="mini" id="bulkClear">Bekor</button>
       </div>
@@ -722,11 +740,11 @@ if (!window.supabase) document.write('<scr' + 'ipt src="https://esm.sh/@supabase
       <div class="hero" id="hero"></div>
       <div class="dt-grid">
         <div>
-          <div class="panel">
-            <div class="p-head"><h3>Bitim ma'lumotlari</h3><button class="link-btn" id="editDeal2">Tahrirlash</button></div>
+          <div class="panel" id="dealPanel">
+            <div class="p-head"><h3 id="dealPanelT">Bitim ma'lumotlari</h3><button class="link-btn" id="editDeal2">Tahrirlash</button></div>
             <div class="flds" id="dealFields"></div>
           </div>
-          <div class="panel" style="margin-top:12px">
+          <div class="panel" id="clientPanel" style="margin-top:12px">
             <div class="p-head"><h3>Mijoz</h3><button class="link-btn" id="gotoClient">Kartaga o'tish</button></div>
             <div class="flds" id="clientFields"></div>
           </div>
@@ -855,16 +873,19 @@ const TABLE = "deals";
 const PROFILES = "profiles";
 
 /* ===================== 2. KONSTANTALAR ===================== */
-const STAGES = ["YANGI ARIZA","ISHLOV BERILMOQDA","QAROR QABUL QILMOQDA","BUYURTMA","MUVAFFAQIYATLI","JAVOB BERMADI","RAD ETILDI"];
-const PIPELINE = STAGES.slice(0, 5);              // ketma-ket bosqichlar
-const LOST = ["JAVOB BERMADI","RAD ETILDI"];      // yakuniy salbiy natijalar
+const STAGES = ["YANGI ARIZA","ISHLOV BERILMOQDA","QAROR QABUL QILMOQDA","BUYURTMA","YETKAZILMOQDA","MUVAFFAQIYATLI","JAVOB BERMADI","BEKOR QILINDI","RAD ETILDI"];
+const PIPELINE = STAGES.slice(0, 6);              // ketma-ket bosqichlar
+const LOST = ["JAVOB BERMADI","BEKOR QILINDI","RAD ETILDI"];      // yakuniy salbiy natijalar
 const WON = "MUVAFFAQIYATLI";
 const SHORT = {"YANGI ARIZA":"Yangi","ISHLOV BERILMOQDA":"Ishlov","QAROR QABUL QILMOQDA":"Qaror",
-  "BUYURTMA":"Buyurtma","MUVAFFAQIYATLI":"Yopildi","JAVOB BERMADI":"Javobsiz","RAD ETILDI":"Rad etildi"};
+  "BUYURTMA":"Buyurtma","YETKAZILMOQDA":"Yetkazish","MUVAFFAQIYATLI":"Yopildi",
+  "JAVOB BERMADI":"Javobsiz","BEKOR QILINDI":"Bekor","RAD ETILDI":"Rad etildi"};
 const SC = {"YANGI ARIZA":"s-yangi","ISHLOV BERILMOQDA":"s-ishlov","QAROR QABUL QILMOQDA":"s-qaror",
-  "BUYURTMA":"s-buyurtma","MUVAFFAQIYATLI":"s-muvaf","JAVOB BERMADI":"s-javob","RAD ETILDI":"s-rad"};
+  "BUYURTMA":"s-buyurtma","YETKAZILMOQDA":"s-yetkaz","MUVAFFAQIYATLI":"s-muvaf",
+  "JAVOB BERMADI":"s-javob","BEKOR QILINDI":"s-bekor","RAD ETILDI":"s-rad"};
 const HEX = {"YANGI ARIZA":"#2B5CE6","ISHLOV BERILMOQDA":"#E8912B","QAROR QABUL QILMOQDA":"#7C5CF0",
-  "BUYURTMA":"#0EA5E9","MUVAFFAQIYATLI":"#0E9F6E","JAVOB BERMADI":"#64748B","RAD ETILDI":"#DC2B26"};
+  "BUYURTMA":"#0EA5E9","YETKAZILMOQDA":"#65A30D","MUVAFFAQIYATLI":"#0E9F6E",
+  "JAVOB BERMADI":"#64748B","BEKOR QILINDI":"#881337","RAD ETILDI":"#DC2B26"};
 const SRC_HEX = ["#0A1730","#1F4183","#2B5CE6","#5C87F5","#A9C2FA"];
 
 const FUNNELS = ["Sotuv varonkasi","Qayta sotuv","Ulgurji mijozlar"];
@@ -894,6 +915,7 @@ const DAY = 86400000;
 const initials = n => String(n || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
 /* Supabase id — son yoki uuid bo'lishi mumkin. Solishtirish doim matn ustida. */
 const sid = v => String(v == null ? "" : v);
+const safeScroll = (el, o) => { if (el && typeof el.scrollIntoView === "function") el.scrollIntoView(o); };
 const same = (a, b) => sid(a) === sid(b);
 const newLocalId = () => "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const roleLabel = r => (ROLES.find(x => x.k === r) || ROLES[0]).l;
@@ -1136,7 +1158,7 @@ const API = {
   },
   /* Ommaviy o'zgartirish — apply() mahalliy obyektni yangilaydi,
      so'ng o'zgargan qatorlar bazaga bo'lak-bo'lak yoziladi */
-  async batch(ids, apply, onProgress) {
+  async batch(ids, apply, onProgress, fields) {
     const byId = new Map();
     for (let i = 0; i < DEALS.length; i++) byId.set(sid(DEALS[i].id), DEALS[i]);
     const list = [];
@@ -1148,9 +1170,12 @@ const API = {
     let done = 0;
     for (let i = 0; i < total; i += CFG.writeChunk) {
       const part = list.slice(i, i + CFG.writeChunk);
-      const res = await Promise.all(part.map(d => sb.from(TABLE).update({
-        stage: d.stage, events: d.events, updated_at: new Date().toISOString()
-      }).eq("id", d.id)));
+      const cols = fields && fields.length ? fields : ["stage", "events"];
+      const res = await Promise.all(part.map(d => {
+        const row = dealToRow(d), body = { updated_at: new Date().toISOString() };
+        for (let k = 0; k < cols.length; k++) body[cols[k]] = row[cols[k]];
+        return sb.from(TABLE).update(body).eq("id", d.id);
+      }));
       for (let j = 0; j < res.length; j++) if (res[j].error) throw res[j].error;
       done += part.length;
       if (onProgress) onProgress(done, total || ids.length);
@@ -1469,6 +1494,14 @@ function fRow(k, v) {
     (has ? "" : " blank") + '">' + (has ? esc(v) : "—") + '</div></div>';
 }
 function openDeal(id) {
+  if (editing) {
+    editing = false;
+    const dp = $("#dealPanel"), cp = $("#clientPanel"), t = $("#dealPanelT"), e2 = $("#editDeal2");
+    if (dp) dp.classList.remove("editing");
+    if (cp) cp.classList.remove("editing");
+    if (t) t.textContent = "Bitim ma'lumotlari";
+    if (e2) e2.hidden = false;
+  }
   const d = DEALS.find(x => same(x.id, id));
   if (!d) { toast("Bitim topilmadi.", "bad"); return; }
   current = d; tab = "all"; feedLimit = CFG.feedStep;
@@ -1498,6 +1531,7 @@ function railHTML(d) {
 function drawDeal() {
   const d = current;
   if (!d) return;
+  if (editing) { drawTasks(); drawFeed(); return; }
   $("#hero").innerHTML =
     '<div class="hero-top"><div style="min-width:0">' +
       '<div class="hero-name">' + esc(d.name) + '</div>' +
@@ -1521,6 +1555,173 @@ function drawDeal() {
   drawTasks();
   drawFeed();
 }
+/* ===================== PANEL ICHIDA TAHRIRLASH =====================
+   Modal ochilmaydi — "Bitim ma'lumotlari" paneli o'z o'rnida shaklga aylanadi.
+   Sahifaning boshqa qismlari o'zgarmaydi. */
+let editing = false, edSaving = false;
+
+function edF(id, label, html, full) {
+  return '<div class="ed-f' + (full ? " full" : "") + '"><label for="' + id + '">' + label + '</label>' + html + '</div>';
+}
+function startEdit() {
+  const d = current;
+  if (!d || editing) return;
+  editing = true;
+  $("#dealPanel").classList.add("editing");
+  $("#clientPanel").classList.add("editing");
+  $("#dealPanelT").textContent = "Bitimni tahrirlash";
+  $("#editDeal2").hidden = true;
+  const eb = $("#editDeal");
+  if (eb) eb.classList.add("on");
+
+  $("#dealFields").innerHTML =
+    '<div class="ed-grid">' +
+      edF("f-name", "BITIM NOMI",
+        '<input id="f-name" value="' + esc(d.name) + '" placeholder="TARGET ABIHAYAT DILNOZA">' +
+        '<div class="err" id="e-name">Bitim nomini kiriting.</div>', true) +
+      edF("f-budget", "BYUDJET", '<input id="f-budget" type="number" inputmode="numeric" min="0" step="1000" value="' + Number(d.budget || 0) + '">') +
+      edF("f-order", "BUYURTMA SANASI", '<input id="f-order" type="date" value="' + esc(d.order || "") + '">') +
+      edF("f-funnel", "VARONKA", '<select id="f-funnel">' + opts(FUNNELS, d.funnel) + '</select>') +
+      edF("f-owner", "MAS'UL MENEJER",
+        '<select id="f-owner"' + (canAssign() ? "" : " disabled") + '>' + opts(ownerChoices(d.owner), d.owner) + '</select>' +
+        (canAssign() ? "" : '<div class="ed-note" style="margin-top:5px">Mas\'ulni faqat administrator o\'zgartiradi.</div>')) +
+      edF("f-prod", "MAHSULOT", '<select id="f-prod">' + opts(PRODUCTS, d.product) + '</select>') +
+      edF("f-qty", "MAHSULOT SONI", '<input id="f-qty" type="number" inputmode="numeric" min="1" value="' + Number(d.qty || 1) + '">') +
+      '<div class="ed-f full"><label>BOSQICH</label>' + stagePickHTML(d.stage) + '</div>' +
+    '</div>' +
+    '<div id="saveMsg"></div>' +
+    '<div class="ed-bar">' +
+      '<span class="grow ed-note">O\'zgarishlar tarixga yoziladi</span>' +
+      '<button class="mini" id="edCancel">Bekor qilish</button>' +
+      '<button class="mini solid" id="edSave">Saqlash</button>' +
+    '</div>';
+
+  const c = d.client;
+  $("#clientFields").innerHTML =
+    '<div class="ed-grid">' +
+      edF("f-cname", "F.I.SH.", '<input id="f-cname" value="' + esc(c.name) + '">', true) +
+      edF("f-phone", "TELEFON",
+        '<input id="f-phone" type="tel" inputmode="tel" value="' + esc(c.phone) + '" placeholder="+998 90 000-00-00">' +
+        '<div class="err" id="e-phone">Kamida 9 ta raqam kiriting.</div>') +
+      edF("f-city", "SHAHAR", '<select id="f-city">' + opts(CITIES, c.city) + '</select>') +
+      edF("f-src", "MANBA", '<select id="f-src">' + opts(SOURCES, c.source) + '</select>') +
+      edF("f-email", "EMAIL", '<input id="f-email" type="email" inputmode="email" value="' + esc(c.email || "") + '">') +
+      edF("f-addr", "MANZIL", '<input id="f-addr" value="' + esc(c.addr) + '">', true) +
+      edF("f-ig", "INSTAGRAM", '<input id="f-ig" value="' + esc(c.ig || "") + '" placeholder="@username">', true) +
+    '</div>';
+
+  bindStagePick();
+  $("#edCancel").addEventListener("click", cancelEdit);
+  $("#edSave").addEventListener("click", saveEdit);
+  $("#f-name").addEventListener("keydown", e => { if (e.key === "Enter") saveEdit(); });
+  $("#f-name").focus();
+  safeScroll($("#dealPanel"), { block: "nearest", behavior: "smooth" });
+}
+function cancelEdit() {
+  if (edSaving) return;
+  editing = false;
+  $("#dealPanel").classList.remove("editing");
+  $("#clientPanel").classList.remove("editing");
+  $("#dealPanelT").textContent = "Bitim ma'lumotlari";
+  $("#editDeal2").hidden = false;
+  const eb = $("#editDeal");
+  if (eb) eb.classList.remove("on");
+  drawDeal();
+}
+async function saveEdit() {
+  if (edSaving) return;
+  const d = current;
+  if (!d) return;
+
+  const name = $("#f-name").value.trim(), phone = $("#f-phone").value.trim();
+  let bad = false;
+  $("#e-name").classList.toggle("on", !name);
+  $("#f-name").classList.toggle("bad", !name);
+  if (!name) bad = true;
+  const okPhone = phone === "" || digits(phone).length >= 9;
+  $("#e-phone").classList.toggle("on", !okPhone);
+  $("#f-phone").classList.toggle("bad", !okPhone);
+  if (!okPhone) bad = true;
+  if (bad) { (name ? $("#f-phone") : $("#f-name")).focus(); return; }
+
+  const vals = {
+    name,
+    budget: Math.max(0, parseInt($("#f-budget").value, 10) || 0),
+    stage: $("#f-stage").value,
+    funnel: $("#f-funnel").value,
+    owner: canAssign() ? $("#f-owner").value : d.owner,
+    product: $("#f-prod").value,
+    qty: Math.max(1, parseInt($("#f-qty").value, 10) || 1),
+    order: $("#f-order").value
+  };
+  const cli = {
+    name: $("#f-cname").value.trim(), phone, city: $("#f-city").value,
+    addr: $("#f-addr").value.trim(), source: $("#f-src").value,
+    email: $("#f-email").value.trim(), ig: $("#f-ig").value.trim(),
+    product: vals.product, owner: vals.owner
+  };
+
+  edSaving = true;
+  const btn = $("#edSave");
+  setBusy(btn, true, "Saqlanmoqda…");
+  $("#dealFields").querySelectorAll("input,select,.mini").forEach(el => el.disabled = true);
+  $("#clientFields").querySelectorAll("input,select").forEach(el => el.disabled = true);
+  Prog.start();
+
+  const snap = { deal: Object.assign({}, d), client: Object.assign({}, d.client), events: (d.events || []).slice() };
+  try {
+    const changes = [];
+    if (d.name !== vals.name) changes.push('&quot;Nomi&quot;: &quot;' + esc(d.name) + '&quot; → &quot;' + esc(vals.name) + '&quot;');
+    if (d.budget !== vals.budget) changes.push('&quot;Byudjet&quot;: &quot;' + fmt(d.budget) + '&quot; → &quot;' + fmt(vals.budget) + '&quot;');
+    if (d.order !== vals.order) changes.push('&quot;Buyurtma sanasi&quot;: &quot;' + esc(d.order || "—") + '&quot; → &quot;' + esc(vals.order || "—") + '&quot;');
+    if (d.owner !== vals.owner) changes.push('&quot;Mas\'ul&quot;: &quot;' + esc(d.owner) + '&quot; → &quot;' + esc(vals.owner) + '&quot;');
+    if (d.product !== vals.product) changes.push('&quot;Mahsulot&quot;: &quot;' + esc(d.product) + '&quot; → &quot;' + esc(vals.product) + '&quot;');
+    if (d.client.phone !== cli.phone) changes.push('&quot;Telefon&quot;: &quot;' + esc(d.client.phone) + '&quot; → &quot;' + esc(cli.phone) + '&quot;');
+    if (d.client.name !== cli.name) changes.push('&quot;Mijoz&quot;: &quot;' + esc(d.client.name) + '&quot; → &quot;' + esc(cli.name) + '&quot;');
+    if (changes.length) logEvent(d, { t:"event", kind:"field", ts:Date.now(),
+      html:"<b>" + esc(ME.name) + "</b> maydonlarni o'zgartirdi:<br>" + changes.join("<br>") });
+    if (d.stage !== vals.stage) logEvent(d, { t:"event", kind:"stage", ts:Date.now(), by:ME.name, from:d.stage, to:vals.stage });
+
+    Object.assign(d, vals);
+    Object.assign(d.client, cli);
+    if (d.owner !== snap.deal.owner) {
+      const nm = MANAGERS.find(x => x.name === d.owner);
+      d.ownerId = nm ? nm.id : null;
+      d.client.owner = d.owner;
+    }
+    await API.update(d);
+    reindex(d); touch();
+    editing = false;
+    $("#dealPanel").classList.remove("editing");
+    $("#clientPanel").classList.remove("editing");
+    $("#dealPanelT").textContent = "Bitim ma'lumotlari";
+    $("#editDeal2").hidden = false;
+    const eb = $("#editDeal");
+    if (eb) eb.classList.remove("on");
+    /* Menejer o'zgargan bo'lsa va u endi bizga ko'rinmasa — ro'yxatga qaytamiz */
+    if (!mineOnly(d)) {
+      DEALS = DEALS.filter(x => !same(x.id, d.id));
+      current = null; touch(); renderDeals(); go("deals");
+      toast("Bitim " + vals.owner + " ga o'tkazildi", "ok");
+      return;
+    }
+    drawDeal(); renderDeals(); updateBadge(); flashRow(d.id); freshFeed();
+    toast("Saqlandi", "ok");
+  } catch (err) {
+    Object.assign(d, snap.deal);
+    d.client = snap.client;
+    d.events = snap.events;
+    reindex(d); touch();
+    const box = $("#saveMsg");
+    if (box) box.innerHTML = '<div class="bad-note" style="margin-top:10px">' + dbHint(err) + '</div>';
+    setBusy(btn, false);
+    $("#dealFields").querySelectorAll("input,select,.mini").forEach(el => el.disabled = false);
+    $("#clientFields").querySelectorAll("input,select").forEach(el => el.disabled = false);
+    console.error(err);
+    toast("Saqlanmadi", "bad");
+  } finally { edSaving = false; Prog.done(); }
+}
+
 function drawTasks() {
   const d = current;
   const open = d.tasks.filter(x => !x.done);
@@ -1976,7 +2177,7 @@ function dealForm(d) {
       const box = $("#saveMsg");
       if (box) {
         box.innerHTML = '<div class="bad-note">' + dbHint(err) + '</div>';
-        try { if (box.scrollIntoView) box.scrollIntoView({ block: "nearest" }); } catch (e2) {}
+        try { if (box.scrollIntoView) safeScroll(box, { block: "nearest" }); } catch (e2) {}
       }
       toast("Saqlanmadi — sabab formada ko'rsatildi", "bad");
     } finally { saving = false; Prog.done(); }
@@ -2336,6 +2537,12 @@ function fillManagerSelects() {
   $("#ownerF").innerHTML = '<option value="">Barcha mas\'ullar</option>' + opts(names, null);
   $("#taskOwner").innerHTML = '<option value="">Barcha mas\'ullar</option>' + opts(names, null);
   $("#dashOwner").innerHTML = '<option value="">Barcha menejerlar</option>' + opts(names, null);
+  const bo = $("#bulkOwner");
+  if (bo) {
+    const keepBo = bo.value;
+    bo.innerHTML = '<option value="">Kimga o\'tkazilsin?</option>' + opts(MANAGERS.map(m => m.name), null);
+    if (keepBo) bo.value = keepBo;
+  }
   keep("#ownerF", oldOwnerF); keep("#taskOwner", oldTaskOwner); keep("#dashOwner", oldDashOwner);
 }
 /* Rolga qarab interfeys: menejerga begona menejer filtrlari kerak emas */
@@ -2348,6 +2555,12 @@ function applyRole() {
   hide("#myBtn", admin);       /* "Faqat meniki" — menejerda ma'nosiz */
   hide("#taskOwner", admin);   /* Vazifalar: mas'ul filtri */
   hide("#dashOwner", admin);   /* Panel: menejer tanlash */
+  hide("#delDeal", admin);     /* Bitimni o'chirish — faqat admin */
+  hide("#bulkDel", admin);     /* Ommaviy o'chirish — faqat admin */
+  hide("#bulkOwner", admin);   /* Mas'ulni almashtirish — faqat admin */
+  hide("#bulkMove", admin);
+  const ex = $("#exportBtn");
+  if (ex) ex.hidden = !admin; /* CSV eksport — faqat admin */
   const sub = $("#h1Deals");
   if (sub) sub.textContent = admin ? "" : "Faqat sizga biriktirilgan bitimlar";
   if (!admin) { fOwner = ""; if ($("#ownerF")) $("#ownerF").value = ""; }
@@ -2370,6 +2583,7 @@ function helpModal() {
 
 /* ===================== 14. CSV EKSPORT ===================== */
 function exportCSV() {
+  if (!seesAll()) { toast("CSV eksport faqat administrator uchun.", "bad"); return; }
   const rows = filtered();
   if (!rows.length) { toast("Eksport uchun ma'lumot yo'q.", "bad"); return; }
   const head = ["ID","Bitim","Mas'ul","Yaratilgan","Shahar","Buyurtma","Telefon","Byudjet","Bosqich","Varonka","Mahsulot","Soni","Mijoz","Manzil","Manba"];
@@ -2492,6 +2706,42 @@ function bind() {
     const tr = e.target.closest("tr[data-id]");
     if (tr) openDeal(tr.dataset.id);
   });
+  /* Ommaviy: tanlangan bitimlarni boshqa menejerga o'tkazish — faqat admin */
+  let moveBusy = false;
+  $("#bulkMove").addEventListener("click", async e => {
+    if (moveBusy) return;
+    if (!seesAll()) { toast("Bu amal faqat administrator uchun.", "bad"); return; }
+    const to = $("#bulkOwner").value;
+    const ids = Array.from(sel);
+    if (!to) { toast("Avval menejerni tanlang.", "bad"); return; }
+    if (!ids.length) return;
+    const m = MANAGERS.find(x => x.name === to);
+    if (!m) { toast("Menejer topilmadi.", "bad"); return; }
+
+    moveBusy = true;
+    const btn = e.currentTarget, info = $("#bulkN");
+    setBusy(btn, true, "O'tkazilmoqda…");
+    Prog.start();
+    try {
+      const n = await API.batch(ids, d => {
+        if (d.owner === to) return false;
+        logEvent(d, { t:"event", kind:"field", ts:Date.now(),
+          html:"<b>" + esc(ME.name) + "</b> mas'ulni o'zgartirdi: &quot;" + esc(d.owner) +
+               "&quot; → &quot;" + esc(to) + "&quot;" });
+        d.owner = to; d.ownerId = m.id; d.client.owner = to;
+        reindex(d);
+        return true;
+      }, (done, total) => { info.textContent = done + " / " + total; }, ["owner", "owner_id", "client", "events"]);
+      sel.clear();
+      touch(); renderDeals(); updateBadge();
+      toast(fmt(n) + " ta bitim " + to + " ga o'tkazildi", "ok");
+    } catch (err) {
+      console.error(err);
+      toast("O'tkazilmadi: " + String(dbHint(err)).replace(/<[^>]+>/g, "").slice(0, 60), "bad");
+      await load();
+    } finally { setBusy(btn, false); Prog.done(); moveBusy = false; }
+  });
+
   $("#bulkClear").addEventListener("click", () => { sel.clear(); renderDeals(); });
 
   let bulkBusy = false;
@@ -2526,6 +2776,7 @@ function bind() {
     }
   });
   $("#bulkDel").addEventListener("click", () => {
+    if (!seesAll()) { toast("O'chirish faqat administrator uchun.", "bad"); return; }
     const n = sel.size;
     modal('<div class="md-head"><h3>Bitimlarni o\'chirish</h3><button class="x" data-x aria-label="Yopish">' + ic("x") + '</button></div>' +
       '<div class="md-body"><div class="md-note">Tanlangan <b>' + fmt(n) + '</b> ta bitim butunlay o\'chiriladi. Bu amalni qaytarib bo\'lmaydi.</div></div>' +
@@ -2575,8 +2826,8 @@ function bind() {
   /* kartochka */
   $("#backBtn").addEventListener("click", () => { try { history.back(); } catch (e) { go("deals"); } });
   $("#addDeal").addEventListener("click", () => dealForm(null));
-  $("#editDeal").addEventListener("click", () => { if (current) dealForm(current); });
-  $("#editDeal2").addEventListener("click", () => { if (current) dealForm(current); });
+  $("#editDeal").addEventListener("click", () => { if (current) (editing ? cancelEdit() : startEdit()); });
+  $("#editDeal2").addEventListener("click", () => { if (current) startEdit(); });
   $("#hero").addEventListener("click", e => {
     const b = e.target.closest("[data-st]");
     if (b && !b.disabled) changeStage(b.dataset.st);
@@ -2589,6 +2840,7 @@ function bind() {
   });
 
   $("#delDeal").addEventListener("click", () => {
+    if (!seesAll()) { toast("Bitimni o'chirish faqat administrator uchun.", "bad"); return; }
     if (!current) return;
     const d = current;
     modal('<div class="md-head"><h3>Bitimni o\'chirish</h3><button class="x" data-x aria-label="Yopish">' + ic("x") + '</button></div>' +
