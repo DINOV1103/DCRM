@@ -171,9 +171,10 @@ tbody tr:last-child td{border-bottom:none}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
 .stage{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;color:#fff;font-size:11px;
   font-weight:700;letter-spacing:.03em;white-space:nowrap;background:var(--slate);transition:background .25s}
-.s-yangi{background:var(--blue)}.s-ishlov{background:var(--warn)}.s-qaror{background:var(--violet)}
-.s-buyurtma{background:var(--sky)}.s-yetkaz{background:#65A30D}.s-muvaf{background:var(--ok)}
-.s-javob{background:var(--slate)}.s-bekor{background:#881337}.s-rad{background:var(--danger)}
+.s-pervich{background:#4C8DF0}.s-konsalt{background:#1D4ED8}.s-reshenie{background:#D9A520}
+.s-zakaz{background:#4B4396}.s-povtor{background:#171233}.s-nekorrekt{background:#8B5A2B}
+.s-nedozvon{background:#EE5FA0}.s-otkaz{background:#DC2626}.s-uspeshno{background:#16A34A}
+.s-dostavka{background:#131316}.s-finish{background:#8B1B63}.s-target{background:#7F1D1D}
 .empty{padding:54px 20px;text-align:center;color:var(--muted);line-height:1.75;font-size:13.5px}
 .empty .big{font-size:26px;margin-bottom:10px;opacity:.35}
 
@@ -466,6 +467,19 @@ tbody tr.stage-row .nm{font-weight:600}
 .ed-note{font-size:11.5px;color:var(--muted);font-weight:600}
 @media(max-width:720px){ .ed-grid{grid-template-columns:1fr} }
 
+/* ============================ TELEFON MAYDONI ============================ */
+.phone-row{display:flex;gap:6px}
+.phone-row select.cc{flex:0 0 84px;padding:0 4px;font-size:12.5px;text-align:center}
+.phone-row .pfx{display:flex;align-items:center;padding:0 8px;border:1px solid var(--line);border-radius:9px;
+  background:var(--mist);font-size:13.5px;font-weight:700;color:var(--text-2);flex-shrink:0;white-space:nowrap}
+.phone-row input.local{flex:1;min-width:0;letter-spacing:.02em}
+.copy-ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;
+  color:var(--muted);flex-shrink:0;vertical-align:-6px;margin-left:6px}
+.copy-ic svg{width:12.5px;height:12.5px}
+.copy-ic:hover{color:var(--blue);background:var(--blue-50)}
+.copy-ic.copied{color:var(--ok)}
+.fld-v .copy-ic{margin-left:8px}
+
 /* ============================ IKONKALAR (SVG) ============================ */
 svg{display:block;flex-shrink:0}
 .nav-item .ic{display:grid;place-items:center;width:18px;height:18px}
@@ -489,7 +503,7 @@ svg{display:block;flex-shrink:0}
 
 /* ============================ BOSQICH RANGLARI / ADMIN ============================ */
 .nav-item[hidden]{display:none}
-.stage-pick{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.stage-pick{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;max-height:280px;overflow-y:auto}
 .sp{display:flex;align-items:center;gap:8px;padding:10px 11px;border-radius:10px;border:1.5px solid var(--line);
   background:var(--paper);font-size:11.5px;font-weight:700;color:var(--text-2);text-align:left;letter-spacing:.02em;
   transition:.15s;min-width:0}
@@ -731,7 +745,6 @@ if (!window.supabase) document.write('<scr' + 'ipt src="https://esm.sh/@supabase
       <button class="back" id="backBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14.6 5.4L8 12l6.6 6.6"/></svg> Bitimlar</button>
       <div class="dt-actions">
         <button class="sq" id="editDeal" title="Tahrirlash" aria-label="Tahrirlash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16.4 3.6a2.2 2.2 0 0 1 3.1 3.1L7.4 18.8l-4.1 1 1-4.1z"/></svg></button>
-        <button class="sq" id="dupDeal" title="Nusxa olish" aria-label="Nusxa olish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11.4" height="11.4" rx="2.4"/><path d="M4.6 15.2V6.2a2 2 0 0 1 2-2h9"/></svg></button>
         <button class="sq red" id="delDeal" title="O'chirish" aria-label="O'chirish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.8 6.8h16.4"/><path d="M9 6.8V5.2a1.4 1.4 0 0 1 1.4-1.4h3.2A1.4 1.4 0 0 1 15 5.2v1.6"/><path d="M6.4 6.8l.8 12.2a2 2 0 0 0 2 1.8h5.6a2 2 0 0 0 2-1.8l.8-12.2"/><path d="M10.2 11v5.4M13.8 11v5.4"/></svg></button>
         <button class="btn btn-p icon-only" id="newTask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5.2v13.6M5.2 12h13.6"/></svg><span class="lbl2">Vazifa</span></button>
       </div>
@@ -873,19 +886,23 @@ const TABLE = "deals";
 const PROFILES = "profiles";
 
 /* ===================== 2. KONSTANTALAR ===================== */
-const STAGES = ["YANGI ARIZA","ISHLOV BERILMOQDA","QAROR QABUL QILMOQDA","BUYURTMA","YETKAZILMOQDA","MUVAFFAQIYATLI","JAVOB BERMADI","BEKOR QILINDI","RAD ETILDI"];
-const PIPELINE = STAGES.slice(0, 6);              // ketma-ket bosqichlar
-const LOST = ["JAVOB BERMADI","BEKOR QILINDI","RAD ETILDI"];      // yakuniy salbiy natijalar
-const WON = "MUVAFFAQIYATLI";
-const SHORT = {"YANGI ARIZA":"Yangi","ISHLOV BERILMOQDA":"Ishlov","QAROR QABUL QILMOQDA":"Qaror",
-  "BUYURTMA":"Buyurtma","YETKAZILMOQDA":"Yetkazish","MUVAFFAQIYATLI":"Yopildi",
-  "JAVOB BERMADI":"Javobsiz","BEKOR QILINDI":"Bekor","RAD ETILDI":"Rad etildi"};
-const SC = {"YANGI ARIZA":"s-yangi","ISHLOV BERILMOQDA":"s-ishlov","QAROR QABUL QILMOQDA":"s-qaror",
-  "BUYURTMA":"s-buyurtma","YETKAZILMOQDA":"s-yetkaz","MUVAFFAQIYATLI":"s-muvaf",
-  "JAVOB BERMADI":"s-javob","BEKOR QILINDI":"s-bekor","RAD ETILDI":"s-rad"};
-const HEX = {"YANGI ARIZA":"#2B5CE6","ISHLOV BERILMOQDA":"#E8912B","QAROR QABUL QILMOQDA":"#7C5CF0",
-  "BUYURTMA":"#0EA5E9","YETKAZILMOQDA":"#65A30D","MUVAFFAQIYATLI":"#0E9F6E",
-  "JAVOB BERMADI":"#64748B","BEKOR QILINDI":"#881337","RAD ETILDI":"#DC2B26"};
+const STAGES = ["ПЕРВИЧНЫЙ","КОНСУЛЬТАЦИЯ","ПРИНИМАЕТ РЕШЕНИЯ","ЗАКАЗ","КАЙТА ХАРИД","НЕКОРРЕКТНЫЙ","НЕДОЗВОН","ОТКАЗ","УСПЕШНО","ДОСТАВКА","ФИНИШ","ТАРГЕТ ЛИТ"];
+const PIPELINE = STAGES;                          // barcha 12 bosqich kanban'da ko'rinadi
+const LOST = ["НЕКОРРЕКТНЫЙ","НЕДОЗВОН","ОТКАЗ"];  // yakuniy salbiy natijalar
+const WON = "УСПЕШНО";
+/* Eski (Uzbek nomli) bosqichlardan yangisiga o'tish — statistikada ishlatiladi */
+const STAGE_MIGRATE = {"YANGI ARIZA":"ПЕРВИЧНЫЙ","ISHLOV BERILMOQDA":"КОНСУЛЬТАЦИЯ","QAROR QABUL QILMOQDA":"ПРИНИМАЕТ РЕШЕНИЯ",
+  "BUYURTMA":"ЗАКАЗ","YETKAZILMOQDA":"ДОСТАВКА","MUVAFFAQIYATLI":"УСПЕШНО","JAVOB BERMADI":"НЕДОЗВОН",
+  "BEKOR QILINDI":"НЕКОРРЕКТНЫЙ","RAD ETILDI":"ОТКАЗ"};
+const SHORT = {"ПЕРВИЧНЫЙ":"Первичный","КОНСУЛЬТАЦИЯ":"Консультация","ПРИНИМАЕТ РЕШЕНИЯ":"Реш-е",
+  "ЗАКАЗ":"Заказ","КАЙТА ХАРИД":"Кайта харид","НЕКОРРЕКТНЫЙ":"Некоррект","НЕДОЗВОН":"Недозвон",
+  "ОТКАЗ":"Отказ","УСПЕШНО":"Успешно","ДОСТАВКА":"Доставка","ФИНИШ":"Финиш","ТАРГЕТ ЛИТ":"Таргет лит"};
+const SC = {"ПЕРВИЧНЫЙ":"s-pervich","КОНСУЛЬТАЦИЯ":"s-konsalt","ПРИНИМАЕТ РЕШЕНИЯ":"s-reshenie",
+  "ЗАКАЗ":"s-zakaz","КАЙТА ХАРИД":"s-povtor","НЕКОРРЕКТНЫЙ":"s-nekorrekt","НЕДОЗВОН":"s-nedozvon",
+  "ОТКАЗ":"s-otkaz","УСПЕШНО":"s-uspeshno","ДОСТАВКА":"s-dostavka","ФИНИШ":"s-finish","ТАРГЕТ ЛИТ":"s-target"};
+const HEX = {"ПЕРВИЧНЫЙ":"#4C8DF0","КОНСУЛЬТАЦИЯ":"#1D4ED8","ПРИНИМАЕТ РЕШЕНИЯ":"#D9A520",
+  "ЗАКАЗ":"#4B4396","КАЙТА ХАРИД":"#171233","НЕКОРРЕКТНЫЙ":"#8B5A2B","НЕДОЗВОН":"#EE5FA0",
+  "ОТКАЗ":"#DC2626","УСПЕШНО":"#16A34A","ДОСТАВКА":"#131316","ФИНИШ":"#8B1B63","ТАРГЕТ ЛИТ":"#7F1D1D"};
 const SRC_HEX = ["#0A1730","#1F4183","#2B5CE6","#5C87F5","#A9C2FA"];
 
 const FUNNELS = ["Sotuv varonkasi","Qayta sotuv","Ulgurji mijozlar"];
@@ -910,6 +927,57 @@ const rnd = a => a[Math.floor(Math.random() * a.length)];
 const sc = st => SC[st] || "s-javob";
 const hex = st => HEX[st] || "#64748B";
 const digits = s => String(s || "").replace(/\D/g, "");
+/* Telefon: har bir davlat kodi va undan keyingi majburiy raqamlar soni */
+const PHONE_CC = [
+  { v:"998",  code:"998", label:"O'zbekiston", flag:"🇺🇿", n:9  },
+  { v:"992",  code:"992", label:"Tojikiston",   flag:"🇹🇯", n:9  },
+  { v:"7ru",  code:"7",   label:"Rossiya",      flag:"🇷🇺", n:10 },
+  { v:"7kz",  code:"7",   label:"Qozog'iston",  flag:"🇰🇿", n:10 }
+];
+const PHONE_CODES_DESC = [...new Set(PHONE_CC.map(c => c.code))].sort((a, b) => b.length - a.length);
+/* Davlat kodini raqamdan aniqlash (eng uzun kod ustuvor) */
+function detectCC(phone) {
+  const raw = digits(phone);
+  for (const code of PHONE_CODES_DESC) if (raw.startsWith(code)) return PHONE_CC.find(c => c.code === code);
+  return PHONE_CC[0];
+}
+/* Davlat kodisiz mahalliy raqamlarni ajratish */
+function localDigits(phone) {
+  const raw = digits(phone), cc = detectCC(phone);
+  return raw.startsWith(cc.code) ? raw.slice(cc.code.length) : raw;
+}
+/* Mahalliy raqamlarni chiroyli formatga keltirish: 90 123-45-67 / 916 123-45-67 */
+function formatLocal(dg, n) {
+  dg = dg.slice(0, n);
+  if (n === 9) return [dg.slice(0,2), dg.slice(2,5), dg.slice(5,7), dg.slice(7,9)].filter(Boolean).join(dg.length>2?"-":"").replace(/^(\d{2})-?/, "$1 ").trim().replace(/(\d)-(\d{2})$/,"$1-$2");
+  return [dg.slice(0,3), dg.slice(3,6), dg.slice(6,8), dg.slice(8,10)].filter(Boolean).join("").length ? dg : dg;
+}
+/* Yakuniy saqlash formati: "+998 90 123-45-67" ko'rinishida */
+function composePhone(ccVal, dg) {
+  const cc = PHONE_CC.find(c => c.v === ccVal) || PHONE_CC[0];
+  dg = digits(dg).slice(0, cc.n);
+  if (!dg) return "";
+  let body;
+  if (cc.n === 9) body = [dg.slice(0,2), dg.slice(2,5), dg.slice(5,7), dg.slice(7,9)].filter(Boolean).join(" ").replace(/ (\d{2}) (\d{2})$/, "-$1-$2");
+  else body = [dg.slice(0,3), dg.slice(3,6), dg.slice(6,8), dg.slice(8,10)].filter(Boolean).join(" ").replace(/ (\d{2}) (\d{2})$/, "-$1-$2");
+  return "+" + cc.code + " " + body;
+}
+/* Telefon raqami yonidagi nusxa olish tugmasi — faqat mahalliy 9-10 raqamni ko'chiradi */
+async function copyPhone(phone, btn) {
+  const local = localDigits(phone);
+  if (!local) return;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(local);
+    else { const ta = document.createElement("textarea"); ta.value = local; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+    toast("Nusxalandi: " + local, "ok");
+    if (btn) { btn.classList.add("copied"); setTimeout(() => btn && btn.classList.remove("copied"), 900); }
+  } catch (e) { console.error(e); toast("Nusxalab bo'lmadi", "bad"); }
+}
+function copyBtnHTML(phone) {
+  if (!phone) return "";
+  return '<button class="copy-ic" data-copyphone="' + esc(phone) + '" title="Nusxalash" aria-label="Raqamni nusxalash">' + ic("copy") + '</button>';
+}
 const COLL = new Intl.Collator("uz", { numeric: true, sensitivity: "base" });
 const DAY = 86400000;
 const initials = n => String(n || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -1411,7 +1479,7 @@ function renderDeals() {
         '<td>', esc(d.created.slice(0, 16)), '</td>',
         '<td>', esc(d.client.city), '</td>',
         '<td>', esc(d.order || "—"), '</td>',
-        '<td>', esc(d.client.phone), '</td>',
+        '<td>', esc(d.client.phone), copyBtnHTML(d.client.phone), '</td>',
         '<td class="money">', fmt(d.budget), '</td>',
         '<td><span class="stage ', sc(d.stage), '">', esc(d.stage), '</span></td></tr>'
       );
@@ -1553,7 +1621,10 @@ function drawDeal() {
 
   const c = d.client;
   $("#clientFields").innerHTML =
-    fRow("F.I.SH.", c.name) + fRow("Telefon", c.phone) + fRow("Email", c.email) + fRow("Manba", c.source) +
+    fRow("F.I.SH.", c.name) +
+    '<div class="fld-row"><div class="fld-k">Telefon</div><div class="fld-v' + (c.phone ? "" : " blank") + '">' +
+      (c.phone ? esc(c.phone) + copyBtnHTML(c.phone) : "—") + '</div></div>' +
+    fRow("Email", c.email) + fRow("Manba", c.source) +
     fRow("Shahar", c.city) + fRow("Manzil", c.addr) + fRow("Mahsulot", c.product) + fRow("Instagram", c.ig);
 
   drawTasks();
@@ -1604,9 +1675,16 @@ function startEdit() {
   $("#clientFields").innerHTML =
     '<div class="ed-grid">' +
       edF("f-cname", "F.I.SH.", '<input id="f-cname" value="' + esc(c.name) + '">', true) +
-      edF("f-phone", "TELEFON",
-        '<input id="f-phone" type="tel" inputmode="tel" value="' + esc(c.phone) + '" placeholder="+998 90 000-00-00">' +
-        '<div class="err" id="e-phone">Kamida 9 ta raqam kiriting.</div>') +
+      (() => {
+        const pcc = detectCC(c.phone), pdg = localDigits(c.phone);
+        return edF("f-phone-local", "TELEFON",
+          '<div class="phone-row"><select id="f-cc" class="cc">' +
+            PHONE_CC.map(x => '<option value="' + x.v + '"' + (x.v === pcc.v ? " selected" : "") + '>' + x.flag + ' +' + x.code + '</option>').join("") +
+          '</select><span class="pfx" id="f-pfx">+' + pcc.code + '</span>' +
+          '<input id="f-phone-local" type="tel" inputmode="numeric" class="local" maxlength="10" ' +
+            'value="' + esc(pdg) + '" placeholder="90 123-45-67"></div>' +
+          '<div class="err" id="e-phone">Aniq ' + pcc.n + ' ta raqam kiriting.</div>', true);
+      })() +
       edF("f-city", "SHAHAR", '<select id="f-city">' + opts(CITIES, c.city) + '</select>') +
       edF("f-src", "MANBA", '<select id="f-src">' + opts(SOURCES, c.source) + '</select>') +
       edF("f-email", "EMAIL", '<input id="f-email" type="email" inputmode="email" value="' + esc(c.email || "") + '">') +
@@ -1637,16 +1715,19 @@ async function saveEdit() {
   const d = current;
   if (!d) return;
 
-  const name = $("#f-name").value.trim(), phone = $("#f-phone").value.trim();
+  const name = $("#f-name").value.trim();
+  const ccVal = $("#f-cc").value, ccInfo = PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0];
+  const localRaw = digits($("#f-phone-local").value);
+  const phone = composePhone(ccVal, localRaw);
   let bad = false;
   $("#e-name").classList.toggle("on", !name);
   $("#f-name").classList.toggle("bad", !name);
   if (!name) bad = true;
-  const okPhone = phone === "" || digits(phone).length >= 9;
+  const okPhone = localRaw.length === 0 || localRaw.length === ccInfo.n;
   $("#e-phone").classList.toggle("on", !okPhone);
-  $("#f-phone").classList.toggle("bad", !okPhone);
+  $("#f-phone-local").classList.toggle("bad", !okPhone);
   if (!okPhone) bad = true;
-  if (bad) { (name ? $("#f-phone") : $("#f-name")).focus(); return; }
+  if (bad) { (name ? $("#f-phone-local") : $("#f-name")).focus(); return; }
 
   const vals = {
     name,
@@ -2869,6 +2950,27 @@ function bind() {
   $("#addDeal").addEventListener("click", createBlankDeal);
   $("#editDeal").addEventListener("click", () => { if (current) (editing ? cancelEdit() : startEdit()); });
   $("#editDeal2").addEventListener("click", () => { if (current) startEdit(); });
+  document.addEventListener("input", e => {
+    if (e.target && e.target.id === "f-phone-local") {
+      const ccVal = $("#f-cc") ? $("#f-cc").value : "998";
+      const info = PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0];
+      e.target.value = digits(e.target.value).slice(0, info.n);
+    }
+  });
+  document.addEventListener("change", e => {
+    if (e.target && e.target.id === "f-cc") {
+      const info = PHONE_CC.find(x => x.v === e.target.value) || PHONE_CC[0];
+      const pfx = $("#f-pfx"); if (pfx) pfx.textContent = "+" + info.code;
+      const loc = $("#f-phone-local");
+      if (loc) { loc.maxLength = info.n; loc.value = digits(loc.value).slice(0, info.n); }
+      const err = $("#e-phone"); if (err) err.textContent = "Aniq " + info.n + " ta raqam kiriting.";
+    }
+  });
+  document.addEventListener("click", e => {
+    const cb = e.target.closest("[data-copyphone]");
+    if (cb) { copyPhone(cb.dataset.copyphone, cb); return; }
+  });
+
   $("#hero").addEventListener("click", e => {
     const b = e.target.closest("[data-st]");
     if (b && !b.disabled) changeStage(b.dataset.st);
@@ -2907,36 +3009,6 @@ function bind() {
         toast("O'chirilmadi", "bad");
       } finally { Prog.done(); busy = false; }
     });
-  });
-
-  let dupBusy = false;
-  $("#dupDeal").addEventListener("click", async () => {
-    if (!current || dupBusy) return;
-    dupBusy = true;
-    const src = current, ts = Date.now();
-    const c = {
-      id: null, ownerId: null, name: src.name + " (nusxa)", owner: ME.name, createdTs: ts, created: dStr(ts), updatedTs: ts,
-      funnel: src.funnel, stage: STAGES[0], order: src.order, budget: src.budget,
-      product: src.product, qty: src.qty,
-      client: Object.assign({}, src.client, { owner: ME.name }),
-      tasks: [],
-      events: [{ t:"event", kind:"create", ts,
-        html:"<b>" + esc(ME.name) + "</b> <b>" + esc(src.name) + "</b> bitimidan nusxa oldi" }]
-    };
-    setBusy($("#dupDeal"), true, "");
-    Prog.start(); toast("Nusxa olinmoqda…", "load");
-    try {
-      await API.create(c);
-      reindex(c); touch(); page = 1;
-      renderDeals(); openDeal(c.id);
-      toast("Nusxa yaratildi", "ok");
-    } catch (e) {
-      console.error(e); toast("Nusxa olinmadi.", "bad");
-    } finally {
-      setBusy($("#dupDeal"), false);
-      $("#dupDeal").innerHTML = ic("copy");
-      Prog.done(); dupBusy = false;
-    }
   });
 
   $$(".tab").forEach(t => t.addEventListener("click", () => {
