@@ -1393,6 +1393,11 @@ function logEvent(d, ev) {
 /* ===================== 6. NAVIGATSIYA ===================== */
 const VIEWS = ["dash","deals","deal","tasks","clients"];
 function go(v) {
+  if (view === "deal" && editing && current && current.id == null && v !== "deal") {
+    /* Bitim saqlanmasdan boshqa joyga o'tildi — qoralama butunlay tashlanadi */
+    editing = false;
+    current = null;
+  }
   view = v;
   VIEWS.forEach(x => { const el = $("#v-" + x); if (el) el.classList.toggle("on", x === v); });
   const navKey = v === "deal" ? "deals" : v;
@@ -1701,6 +1706,11 @@ function startEdit() {
 }
 function cancelEdit() {
   if (edSaving) return;
+  if (current && current.id == null) {
+    editing = false; current = null;
+    go("deals");
+    return;
+  }
   editing = false;
   $("#dealPanel").classList.remove("editing");
   $("#clientPanel").classList.remove("editing");
@@ -1714,6 +1724,7 @@ async function saveEdit() {
   if (edSaving) return;
   const d = current;
   if (!d) return;
+  const isNew = d.id == null;
 
   const name = $("#f-name").value.trim();
   const ccVal = $("#f-cc").value, ccInfo = PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0];
@@ -1755,27 +1766,39 @@ async function saveEdit() {
 
   const snap = { deal: Object.assign({}, d), client: Object.assign({}, d.client), events: (d.events || []).slice() };
   try {
-    const changes = [];
-    if (d.name !== vals.name) changes.push('&quot;Nomi&quot;: &quot;' + esc(d.name) + '&quot; → &quot;' + esc(vals.name) + '&quot;');
-    if (d.budget !== vals.budget) changes.push('&quot;Byudjet&quot;: &quot;' + fmt(d.budget) + '&quot; → &quot;' + fmt(vals.budget) + '&quot;');
-    if (d.order !== vals.order) changes.push('&quot;Buyurtma sanasi&quot;: &quot;' + esc(d.order || "—") + '&quot; → &quot;' + esc(vals.order || "—") + '&quot;');
-    if (d.owner !== vals.owner) changes.push('&quot;Mas\'ul&quot;: &quot;' + esc(d.owner) + '&quot; → &quot;' + esc(vals.owner) + '&quot;');
-    if (d.product !== vals.product) changes.push('&quot;Mahsulot&quot;: &quot;' + esc(d.product) + '&quot; → &quot;' + esc(vals.product) + '&quot;');
-    if (d.client.phone !== cli.phone) changes.push('&quot;Telefon&quot;: &quot;' + esc(d.client.phone) + '&quot; → &quot;' + esc(cli.phone) + '&quot;');
-    if (d.client.name !== cli.name) changes.push('&quot;Mijoz&quot;: &quot;' + esc(d.client.name) + '&quot; → &quot;' + esc(cli.name) + '&quot;');
-    if (changes.length) logEvent(d, { t:"event", kind:"field", ts:Date.now(),
-      html:"<b>" + esc(ME.name) + "</b> maydonlarni o'zgartirdi:<br>" + changes.join("<br>") });
-    if (d.stage !== vals.stage) logEvent(d, { t:"event", kind:"stage", ts:Date.now(), by:ME.name, from:d.stage, to:vals.stage });
-
-    Object.assign(d, vals);
-    Object.assign(d.client, cli);
-    if (d.owner !== snap.deal.owner) {
+    if (isNew) {
+      Object.assign(d, vals);
+      Object.assign(d.client, cli);
       const nm = MANAGERS.find(x => x.name === d.owner);
-      d.ownerId = nm ? nm.id : null;
+      d.ownerId = nm ? nm.id : ME.id;
       d.client.owner = d.owner;
+      d.updatedTs = Date.now();
+      d.events = [{ t:"event", kind:"create", ts: d.createdTs, html:"<b>" + esc(ME.name) + "</b> yangi bitim yaratdi" }];
+      await API.create(d);
+      try { history.replaceState({ deal: sid(d.id) }, "", "#deal-" + encodeURIComponent(sid(d.id))); } catch (e) {}
+    } else {
+      const changes = [];
+      if (d.name !== vals.name) changes.push('&quot;Nomi&quot;: &quot;' + esc(d.name) + '&quot; → &quot;' + esc(vals.name) + '&quot;');
+      if (d.budget !== vals.budget) changes.push('&quot;Byudjet&quot;: &quot;' + fmt(d.budget) + '&quot; → &quot;' + fmt(vals.budget) + '&quot;');
+      if (d.order !== vals.order) changes.push('&quot;Buyurtma sanasi&quot;: &quot;' + esc(d.order || "—") + '&quot; → &quot;' + esc(vals.order || "—") + '&quot;');
+      if (d.owner !== vals.owner) changes.push('&quot;Mas\'ul&quot;: &quot;' + esc(d.owner) + '&quot; → &quot;' + esc(vals.owner) + '&quot;');
+      if (d.product !== vals.product) changes.push('&quot;Mahsulot&quot;: &quot;' + esc(d.product) + '&quot; → &quot;' + esc(vals.product) + '&quot;');
+      if (d.client.phone !== cli.phone) changes.push('&quot;Telefon&quot;: &quot;' + esc(d.client.phone) + '&quot; → &quot;' + esc(cli.phone) + '&quot;');
+      if (d.client.name !== cli.name) changes.push('&quot;Mijoz&quot;: &quot;' + esc(d.client.name) + '&quot; → &quot;' + esc(cli.name) + '&quot;');
+      if (changes.length) logEvent(d, { t:"event", kind:"field", ts:Date.now(),
+        html:"<b>" + esc(ME.name) + "</b> maydonlarni o'zgartirdi:<br>" + changes.join("<br>") });
+      if (d.stage !== vals.stage) logEvent(d, { t:"event", kind:"stage", ts:Date.now(), by:ME.name, from:d.stage, to:vals.stage });
+
+      Object.assign(d, vals);
+      Object.assign(d.client, cli);
+      if (d.owner !== snap.deal.owner) {
+        const nm = MANAGERS.find(x => x.name === d.owner);
+        d.ownerId = nm ? nm.id : null;
+        d.client.owner = d.owner;
+      }
+      d.updatedTs = Date.now();
+      await API.update(d);
     }
-    d.updatedTs = Date.now();
-    await API.update(d);
     reindex(d); touch();
     editing = false;
     $("#dealPanel").classList.remove("editing");
@@ -1791,13 +1814,16 @@ async function saveEdit() {
       toast("Bitim " + vals.owner + " ga o'tkazildi", "ok");
       return;
     }
+    page = isNew ? 1 : page;
     drawDeal(); renderDeals(); updateBadge(); flashRow(d.id); freshFeed();
-    toast("Saqlandi", "ok");
+    toast(isNew ? "Bitim yaratildi" : "Saqlandi", "ok");
   } catch (err) {
-    Object.assign(d, snap.deal);
-    d.client = snap.client;
-    d.events = snap.events;
-    reindex(d); touch();
+    if (!isNew) {
+      Object.assign(d, snap.deal);
+      d.client = snap.client;
+      d.events = snap.events;
+      reindex(d); touch();
+    }
     const box = $("#saveMsg");
     if (box) box.innerHTML = '<div class="bad-note" style="margin-top:10px">' + dbHint(err) + '</div>';
     setBusy(btn, false);
@@ -1862,6 +1888,7 @@ function drawFeed() {
 let stageBusy = false;
 async function changeStage(st) {
   if (!current || stageBusy || st === current.stage) return;
+  if (!requireSaved()) return;
   const d = current, from = d.stage;
   stageBusy = true;
   const btn = $('#hero [data-st="' + st.replace(/"/g, '') + '"]');
@@ -2150,38 +2177,32 @@ function closeM() {
   if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
 }
 
-let creatingDeal = false;
-/* "+ Bitim qo'shish" — popup yo'q. Bo'sh bitim darhol yaratiladi va
-   kartochka tahrirlash rejimida ochiladi, to'ldirish o'sha yerda davom etadi. */
-async function createBlankDeal() {
-  if (creatingDeal) return;
-  creatingDeal = true;
-  const btn = $("#addDeal");
-  setBusy(btn, true, "");
-  Prog.start();
+/* "+ Bitim qo'shish" — popup YO'Q va bazaga DARHOL yozilmaydi.
+   Xotirada (id:null) qoralama ochiladi; faqat "Saqlash" bosilganda
+   haqiqiy yozuv sifatida yaratiladi. Saqlanmasdan chiqib ketilsa —
+   hech narsa bazada qolmaydi. */
+function requireSaved() {
+  if (current && current.id == null) { toast("Avval bitimni saqlang", "bad"); return false; }
+  return true;
+}
+function createBlankDeal() {
+  if (editing && current && current.id == null) return; // qoralama allaqachon ochiq
   const ts = Date.now();
   const d = {
-    id: null, ownerId: ME.id, name: "Yangi bitim", owner: ME.name,
+    id: null, ownerId: ME.id, name: "", owner: ME.name,
     createdTs: ts, created: dStr(ts), updatedTs: ts,
     funnel: FUNNELS[0], stage: STAGES[0], order: "", budget: 0, product: PRODUCTS[0], qty: 1,
     client: { name: "", owner: ME.name, phone: "", email: "", source: SOURCES[0], city: CITIES[0], addr: "", product: PRODUCTS[0], ig: "" },
-    tasks: [],
-    events: [{ t:"event", kind:"create", ts, html:"<b>" + esc(ME.name) + "</b> yangi bitim yaratdi" }]
+    tasks: [], events: []
   };
-  try {
-    await API.create(d);
-    reindex(d); touch();
-    page = 1; renderDeals();
-    openDeal(d.id);
-    startEdit();
-    toast("Yangi bitim yaratildi — to'ldiring", "ok");
-  } catch (err) {
-    console.error(err);
-    toast("Bitim yaratilmadi: " + String(dbHint(err)).replace(/<[^>]+>/g, "").slice(0, 70), "bad");
-  } finally {
-    setBusy(btn, false);
-    Prog.done(); creatingDeal = false;
-  }
+  current = d; tab = "all"; feedLimit = CFG.feedStep;
+  $$(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === "all"));
+  $("#cmInput").value = ""; $("#cmCount").textContent = "0";
+  drawDeal();
+  go("deal");
+  $("#dealScroll").scrollTop = 0;
+  try { history.pushState({ deal: null }, "", "#new-deal"); } catch (e) {}
+  startEdit();
 }
 
 function dealForm(d) {
@@ -2983,8 +3004,9 @@ function bind() {
   });
 
   $("#delDeal").addEventListener("click", () => {
-    if (!seesAll()) { toast("Bitimni o'chirish faqat administrator uchun.", "bad"); return; }
     if (!current) return;
+    if (current.id == null) { cancelEdit(); return; }
+    if (!seesAll()) { toast("Bitimni o'chirish faqat administrator uchun.", "bad"); return; }
     const d = current;
     modal('<div class="md-head"><h3>Bitimni o\'chirish</h3><button class="x" data-x aria-label="Yopish">' + ic("x") + '</button></div>' +
       '<div class="md-body"><div class="md-note"><b>' + esc(d.name) + '</b> bitimi va unga bog\'liq barcha yozuvlar o\'chiriladi. Bu amalni qaytarib bo\'lmaydi.</div></div>' +
@@ -3029,6 +3051,7 @@ function bind() {
   $("#cmSend").addEventListener("click", async () => {
     const v = $("#cmInput").value.trim();
     if (!v || !current || cmBusy) return;
+    if (!requireSaved()) return;
     cmBusy = true;
     const d = current;
     setBusy($("#cmSend"), true, "Yuborilmoqda…");
@@ -3065,6 +3088,7 @@ function bind() {
 
   $("#newTask").addEventListener("click", () => {
     if (!current) return;
+    if (!requireSaved()) return;
     const t = new Date(Date.now() + DAY);
     const def = t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()) + "T" + pad(t.getHours()) + ":00";
     modal('<div class="md-head"><h3>Yangi vazifa</h3><button class="x" data-x aria-label="Yopish">' + ic("x") + '</button></div>' +
