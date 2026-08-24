@@ -1062,6 +1062,7 @@ function rowToDeal(r) {
     ownerId: r.owner_id || null,
     createdTs: ts,
     created: dStr(ts),
+    updatedTs: r.updated_at ? new Date(r.updated_at).getTime() : ts,
     funnel: FUNNELS.indexOf(r.funnel) !== -1 ? r.funnel : FUNNELS[0],
     stage: STAGES.indexOf(r.stage) !== -1 ? r.stage : STAGES[0],
     order: r.order_date || "",
@@ -1368,6 +1369,9 @@ function filtered() {
       if (typeof x === "number" && typeof y === "number") return (x - y) * sortDir;
       return COLL.compare(String(x), String(y)) * sortDir;
     });
+  } else {
+    /* Aniq ustun tanlanmagan bo'lsa — so'nggi o'zgargan (tahrir/izoh/bosqich/vazifa) yuqorida */
+    out = out.slice().sort((a, b) => (b.updatedTs || b.createdTs || 0) - (a.updatedTs || a.createdTs || 0));
   }
   fKey = key; fCache = out;
   return out;
@@ -1689,6 +1693,7 @@ async function saveEdit() {
       d.ownerId = nm ? nm.id : null;
       d.client.owner = d.owner;
     }
+    d.updatedTs = Date.now();
     await API.update(d);
     reindex(d); touch();
     editing = false;
@@ -1786,6 +1791,7 @@ async function changeStage(st) {
     const ev = { t:"event", kind:"stage", ts:Date.now(), by:ME.name, from, to:st };
     d.stage = st;
     logEvent(d, ev);
+    d.updatedTs = Date.now();
     await API.update(d, { stage: st, events: d.events });
     if (current !== d) return;
     reindex(d); touch();
@@ -1865,8 +1871,9 @@ async function completeTask(id, btn) {
     found.t.done = true; found.t.result = "Bajarildi";
     logEvent(found.d, { t:"task", kind:"taskdone", ts:Date.now(),
       html:"<b>" + esc(ME.name) + "</b> <b>" + esc(found.t.title) + "</b> vazifasini bajardi" });
+    found.d.updatedTs = Date.now();
     await API.update(found.d, { tasks: found.d.tasks, events: found.d.events });
-    touch();
+    touch(); renderDeals();
     toast("Vazifa bajarildi", "ok");
     return true;
   } catch (e) {
@@ -2060,6 +2067,40 @@ function closeM() {
   $("#ov").classList.remove("open");
   $("#mod").innerHTML = "";
   if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+}
+
+let creatingDeal = false;
+/* "+ Bitim qo'shish" — popup yo'q. Bo'sh bitim darhol yaratiladi va
+   kartochka tahrirlash rejimida ochiladi, to'ldirish o'sha yerda davom etadi. */
+async function createBlankDeal() {
+  if (creatingDeal) return;
+  creatingDeal = true;
+  const btn = $("#addDeal");
+  setBusy(btn, true, "");
+  Prog.start();
+  const ts = Date.now();
+  const d = {
+    id: null, ownerId: ME.id, name: "Yangi bitim", owner: ME.name,
+    createdTs: ts, created: dStr(ts), updatedTs: ts,
+    funnel: FUNNELS[0], stage: STAGES[0], order: "", budget: 0, product: PRODUCTS[0], qty: 1,
+    client: { name: "", owner: ME.name, phone: "", email: "", source: SOURCES[0], city: CITIES[0], addr: "", product: PRODUCTS[0], ig: "" },
+    tasks: [],
+    events: [{ t:"event", kind:"create", ts, html:"<b>" + esc(ME.name) + "</b> yangi bitim yaratdi" }]
+  };
+  try {
+    await API.create(d);
+    reindex(d); touch();
+    page = 1; renderDeals();
+    openDeal(d.id);
+    startEdit();
+    toast("Yangi bitim yaratildi — to'ldiring", "ok");
+  } catch (err) {
+    console.error(err);
+    toast("Bitim yaratilmadi: " + String(dbHint(err)).replace(/<[^>]+>/g, "").slice(0, 70), "bad");
+  } finally {
+    setBusy(btn, false);
+    Prog.done(); creatingDeal = false;
+  }
 }
 
 function dealForm(d) {
@@ -2728,7 +2769,7 @@ function bind() {
         logEvent(d, { t:"event", kind:"field", ts:Date.now(),
           html:"<b>" + esc(ME.name) + "</b> mas'ulni o'zgartirdi: &quot;" + esc(d.owner) +
                "&quot; → &quot;" + esc(to) + "&quot;" });
-        d.owner = to; d.ownerId = m.id; d.client.owner = to;
+        d.owner = to; d.ownerId = m.id; d.client.owner = to; d.updatedTs = Date.now();
         reindex(d);
         return true;
       }, (done, total) => { info.textContent = done + " / " + total; }, ["owner", "owner_id", "client", "events"]);
@@ -2761,7 +2802,7 @@ function bind() {
       const n = await API.batch(ids, d => {
         if (d.stage === st) return false;
         logEvent(d, { t:"event", kind:"stage", ts:Date.now(), by:ME.name, from:d.stage, to:st });
-        d.stage = st; reindex(d);
+        d.stage = st; d.updatedTs = Date.now(); reindex(d);
         return true;
       }, (done, total) => { info.textContent = done + " / " + total; });
       sel.clear(); touch(); renderDeals();
@@ -2825,7 +2866,7 @@ function bind() {
 
   /* kartochka */
   $("#backBtn").addEventListener("click", () => { try { history.back(); } catch (e) { go("deals"); } });
-  $("#addDeal").addEventListener("click", () => dealForm(null));
+  $("#addDeal").addEventListener("click", createBlankDeal);
   $("#editDeal").addEventListener("click", () => { if (current) (editing ? cancelEdit() : startEdit()); });
   $("#editDeal2").addEventListener("click", () => { if (current) startEdit(); });
   $("#hero").addEventListener("click", e => {
@@ -2874,7 +2915,7 @@ function bind() {
     dupBusy = true;
     const src = current, ts = Date.now();
     const c = {
-      id: null, ownerId: null, name: src.name + " (nusxa)", owner: ME.name, createdTs: ts, created: dStr(ts),
+      id: null, ownerId: null, name: src.name + " (nusxa)", owner: ME.name, createdTs: ts, created: dStr(ts), updatedTs: ts,
       funnel: src.funnel, stage: STAGES[0], order: src.order, budget: src.budget,
       product: src.product, qty: src.qty,
       client: Object.assign({}, src.client, { owner: ME.name }),
@@ -2924,8 +2965,9 @@ function bind() {
     try {
       logEvent(d, { t:"comment", kind:"comment", ts:Date.now(),
         html:"<b>" + esc(ME.name) + ":</b> " + esc(v) });
+      d.updatedTs = Date.now();
       await API.update(d, { events: d.events });
-      touch();
+      touch(); renderDeals();
       if (current === d) {
         $("#cmInput").value = ""; $("#cmCount").textContent = "0";
         feedLimit = CFG.feedStep; drawFeed(); freshFeed();
@@ -2977,8 +3019,9 @@ function bind() {
         d.tasks.push({ id: newLocalId(), title: ti, due, done: false, owner, result: note });
         logEvent(d, { t:"task", kind:"tasknew", ts:Date.now(),
           html:"<b>" + esc(ME.name) + "</b> <b>" + esc(ti) + "</b> vazifasini qo'shdi · mas'ul: " + esc(owner) + " · muddat: " + esc(due) });
+        d.updatedTs = Date.now();
         await API.update(d, { tasks: d.tasks, events: d.events });
-        touch();
+        touch(); renderDeals();
         if (current === d) { drawTasks(); drawFeed(); freshFeed(); }
         updateBadge(); closeM();
         toast("Vazifa qo'shildi", "ok");
@@ -3050,7 +3093,7 @@ function bind() {
     const tagName = (e.target.tagName || "").toLowerCase();
     if (tagName === "input" || tagName === "textarea" || tagName === "select" || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "/") { e.preventDefault(); go("deals"); $("#search").focus(); }
-    else if (e.key === "n" || e.key === "N") { e.preventDefault(); dealForm(null); }
+    else if (e.key === "n" || e.key === "N") { e.preventDefault(); createBlankDeal(); }
     else if (e.key === "d" || e.key === "D") { go("dash"); }
     else if (e.key === "b" || e.key === "B") { go("deals"); }
   });
