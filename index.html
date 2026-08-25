@@ -553,6 +553,28 @@ svg{display:block;flex-shrink:0}
 .ok-note{background:#EAF7F1;color:#0B6B4B;border-radius:9px;padding:10px 12px;font-size:12.5px;font-weight:700;line-height:1.6}
 .bad-note{background:#FDEEED;color:#9B241F;border-radius:9px;padding:10px 12px;font-size:12.5px;font-weight:700;line-height:1.6}
 
+/* ============================ TELEGRAM / WHATSAPP TUGMALARI ============================ */
+/* Ranglar brend ranglaridan bir oz to'qroq — oq matn uchun kontrast yetarli bo'lsin */
+.msg-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.msg-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;color:#fff;
+  font-size:12px;font-weight:800;letter-spacing:.02em;text-decoration:none;white-space:nowrap;
+  border:none;transition:.15s;flex-shrink:0}
+.msg-btn svg{width:14px;height:14px;flex-shrink:0}
+.msg-btn.tg{background:#1A82B8}
+.msg-btn.tg:hover{background:#146B99}
+.msg-btn.wa{background:#128C7E}
+.msg-btn.wa:hover{background:#0D6E63}
+.msg-btn.off{background:var(--line);color:var(--muted);cursor:not-allowed;pointer-events:none}
+/* jadval ichidagi ixcham ko'rinish — faqat logotip */
+.msg-mini{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:8px;color:#fff;text-decoration:none;vertical-align:-7px;margin-left:6px;flex-shrink:0}
+.msg-mini svg{width:14px;height:14px}
+.msg-mini.tg{background:#1A82B8}
+.msg-mini.tg:hover{background:#146B99}
+.msg-mini.wa{background:#128C7E}
+.msg-mini.wa:hover{background:#0D6E63}
+.msg-hint{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:8px}
+
 /* ============================ FAOLIYATSIZLIK OGOHLANTIRISHI ============================ */
 /* Modal tizimidan alohida — ochiq oynani buzmaydi */
 .idle-ov{position:fixed;inset:0;background:rgba(5,13,32,.66);z-index:300;display:none;
@@ -1024,6 +1046,59 @@ async function copyPhone(phone, btn) {
 function copyBtnHTML(phone) {
   if (!phone) return "";
   return '<button class="copy-ic" data-copyphone="' + esc(phone) + '" title="Nusxalash" aria-label="Raqamni nusxalash">' + ic("copy") + '</button>';
+}
+
+/* =====================================================================
+   TELEGRAM / WHATSAPP
+   Raqam to'liq kiritilgach tugma faollashadi. Bosilganda o'sha raqamning
+   Telegram yoki WhatsApp profili yangi oynada ochiladi.
+   ===================================================================== */
+const BRAND_SVG = {
+  tg: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
+  wa: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 11.893 0C5.335 0 .002 5.333 0 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.465 3.4"/></svg>'
+};
+
+/* Xalqaro format: davlat kodi + mahalliy raqam, faqat raqamlardan iborat */
+function fullDigits(phone, ccVal) {
+  const raw = digits(phone);
+  if (!raw) return "";
+  const cc = ccVal ? (PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0]) : detectCC(phone);
+  return raw.startsWith(cc.code) ? raw : cc.code + raw;
+}
+/* Raqam to'liq kiritilganmi (davlat kodiga mos uzunlikda)? */
+function phoneReady(phone, ccVal) {
+  const cc = ccVal ? (PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0]) : detectCC(phone);
+  const full = fullDigits(phone, ccVal);
+  return full.length === cc.code.length + cc.n;
+}
+const tgLink = full => "https://t.me/+" + full;   /* Telegram raqam bo'yicha profilni ochadi */
+const waLink = full => "https://wa.me/" + full;   /* WhatsApp shu raqam bilan chatni ochadi */
+
+/* Katta tugmalar — bitim kartochkasi va tahrirlash formasi uchun */
+function msgBtnsHTML(phone, ccVal) {
+  const full = fullDigits(phone, ccVal);
+  const ok = full && phoneReady(phone, ccVal);
+  if (!ok) {
+    return '<div class="msg-row">' +
+      '<span class="msg-btn tg off">' + BRAND_SVG.tg + 'Telegram</span>' +
+      '<span class="msg-btn wa off">' + BRAND_SVG.wa + 'WhatsApp</span></div>' +
+      '<div class="msg-hint">Raqam to\'liq kiritilgach tugmalar faollashadi</div>';
+  }
+  return '<div class="msg-row">' +
+    '<a class="msg-btn tg" data-msg href="' + esc(tgLink(full)) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="+' + esc(full) + ' — Telegram profilini ochish">' + BRAND_SVG.tg + 'Telegram</a>' +
+    '<a class="msg-btn wa" data-msg href="' + esc(waLink(full)) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="+' + esc(full) + ' — WhatsApp chatini ochish">' + BRAND_SVG.wa + 'WhatsApp</a></div>';
+}
+
+/* Ixcham tugmalar — mijozlar jadvali uchun (faqat logotip) */
+function msgMiniHTML(phone) {
+  const full = fullDigits(phone);
+  if (!full || !phoneReady(phone)) return "";
+  return '<a class="msg-mini tg" data-msg href="' + esc(tgLink(full)) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="Telegram: +' + esc(full) + '" aria-label="Telegram">' + BRAND_SVG.tg + '</a>' +
+    '<a class="msg-mini wa" data-msg href="' + esc(waLink(full)) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="WhatsApp: +' + esc(full) + '" aria-label="WhatsApp">' + BRAND_SVG.wa + '</a>';
 }
 const COLL = new Intl.Collator("uz", { numeric: true, sensitivity: "base" });
 const DAY = 86400000;
@@ -1675,7 +1750,7 @@ function drawDeal() {
   $("#clientFields").innerHTML =
     fRow("F.I.SH.", c.name) +
     '<div class="fld-row"><div class="fld-k">Telefon</div><div class="fld-v' + (c.phone ? "" : " blank") + '">' +
-      (c.phone ? esc(c.phone) + copyBtnHTML(c.phone) : "—") + '</div></div>' +
+      (c.phone ? esc(c.phone) + copyBtnHTML(c.phone) + msgBtnsHTML(c.phone) : "—") + '</div></div>' +
     fRow("Email", c.email) + fRow("Manba", c.source) +
     fRow("Shahar", c.city) + fRow("Manzil", c.addr) + fRow("Mahsulot", c.product) + fRow("Instagram", c.ig);
 
@@ -1736,7 +1811,8 @@ function startEdit() {
           '</select><span class="pfx" id="f-pfx">+' + pcc.code + '</span>' +
           '<input id="f-phone-local" type="tel" inputmode="numeric" class="local" maxlength="10" ' +
             'value="' + esc(pdg) + '" placeholder="90 123-45-67"></div>' +
-          '<div class="err" id="e-phone">Aniq ' + pcc.n + ' ta raqam kiriting.</div>', true);
+          '<div class="err" id="e-phone">Aniq ' + pcc.n + ' ta raqam kiriting.</div>' +
+          '<div id="msgLive">' + msgBtnsHTML(pdg, pcc.v) + '</div>', true);
       })() +
       edF("f-city", "SHAHAR", '<select id="f-city">' + opts(CITIES, c.city) + '</select>') +
       edF("f-src", "MANBA", '<select id="f-src">' + opts(SOURCES, c.source) + '</select>') +
@@ -2077,7 +2153,7 @@ function renderClients() {
   $("#cntClients").textContent = fmt(list.length);
   $("#repClients").textContent = fmt(all.reduce((a, c) => a + (c.deals > 1 ? 1 : 0), 0));
   $("#clBody").innerHTML = slice.length ? slice.map(c =>
-    '<tr data-open="' + esc(c.firstId) + '"><td class="nm">' + esc(c.name) + '</td><td>' + esc(c.phone) + '</td>' +
+    '<tr data-open="' + esc(c.firstId) + '"><td class="nm">' + esc(c.name) + '</td><td>' + esc(c.phone) + msgMiniHTML(c.phone) + '</td>' +
     '<td>' + esc(c.city) + '</td><td>' + esc(c.addr) + '</td><td>' + esc(c.product) + '</td>' +
     '<td>' + esc(c.source) + '</td><td class="money">' + fmt(c.deals) + '</td></tr>').join("")
     : '<tr><td colspan="7" class="empty"><div class="big">' + ic("clients") + '</div>Mijoz topilmadi.</td></tr>';
@@ -3022,11 +3098,19 @@ function bind() {
   $("#addDeal").addEventListener("click", createBlankDeal);
   $("#editDeal").addEventListener("click", () => { if (current) (editing ? cancelEdit() : startEdit()); });
   $("#editDeal2").addEventListener("click", () => { if (current) startEdit(); });
+  /* Raqam yozilayotganda Telegram/WhatsApp tugmalarini yangilab turamiz */
+  function refreshMsgLive() {
+    const box = $("#msgLive"), loc = $("#f-phone-local");
+    if (!box || !loc) return;
+    const ccVal = $("#f-cc") ? $("#f-cc").value : "998";
+    box.innerHTML = msgBtnsHTML(digits(loc.value), ccVal);
+  }
   document.addEventListener("input", e => {
     if (e.target && e.target.id === "f-phone-local") {
       const ccVal = $("#f-cc") ? $("#f-cc").value : "998";
       const info = PHONE_CC.find(x => x.v === ccVal) || PHONE_CC[0];
       e.target.value = digits(e.target.value).slice(0, info.n);
+      refreshMsgLive();
     }
   });
   document.addEventListener("change", e => {
@@ -3036,9 +3120,13 @@ function bind() {
       const loc = $("#f-phone-local");
       if (loc) { loc.maxLength = info.n; loc.value = digits(loc.value).slice(0, info.n); }
       const err = $("#e-phone"); if (err) err.textContent = "Aniq " + info.n + " ta raqam kiriting.";
+      refreshMsgLive();
     }
   });
   document.addEventListener("click", e => {
+    /* Telegram/WhatsApp havolasi — qator ochilib ketmasin */
+    const mb = e.target.closest("[data-msg]");
+    if (mb) { e.stopPropagation(); return; }
     const cb = e.target.closest("[data-copyphone]");
     if (cb) { copyPhone(cb.dataset.copyphone, cb); return; }
   });
