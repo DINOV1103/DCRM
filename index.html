@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
+  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1669087454197560');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1669087454197560&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+
   <!-- SEO: MEGA OPTIMIZED TITLE & DESCRIPTION -->
   <title>Қандли диабет (сахр) ва юқори қон босимини табиий тушириш сирлари | ABIHAYAT</title>
   <meta name="description" content="Қондаги қанд миқдорини (сахр) ва юқори қон босимини тушириш учун 100% табиий Туркия кашфиёти. Уй шароитида диабет ва давлениядан халос бўлиш сирлари. ABIHAYAT орқали соғлом ҳаётга қайтинг!">
@@ -581,6 +599,56 @@
     (function () {
       'use strict';
       
+      // === META CONVERSIONS API (CAPI) CONFIG ===
+      const PIXEL_ID = '1669087454197560';
+      const ACCESS_TOKEN = 'EAARk0yxYdX4BSXQOuJ9mev9DuHrnnP3H6F96W8Epr9XoVZCap4REdnsa5vXDEa5iOI8ZBaK4ZB1nXQ3pQNlbA6WhVzqrsislLzILZCZCoTIYoh944ZAdR4smxag3vsNArhsfqOltvKjUThXb8npQNROdDCvJaQcNuetoZB7WTGedublc2ikx2G4uKSGnkWZBgeATQAZDZD';
+
+      // SHA-256 Hash funksiyasi (CAPI xavfsizligi va user_data uchun)
+      async function hashSHA256(str) {
+        const utf8 = new TextEncoder().encode(str.trim().toLowerCase());
+        const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      // Meta Conversions API orqali Server Event Yuborish
+      async function sendCAPILeadEvent(leadData, eventId) {
+        try {
+          const hashedPhone = await hashSHA256(leadData.phone);
+          const rawPhoneClean = leadData.phone.replace(/[^0-9]/g, '');
+
+          const payload = {
+            data: [
+              {
+                event_name: 'Lead',
+                event_time: Math.floor(Date.now() / 1000),
+                event_id: eventId,
+                action_source: 'website',
+                event_source_url: window.location.href,
+                user_data: {
+                  ph: [hashedPhone],
+                  client_user_agent: navigator.userAgent
+                },
+                custom_data: {
+                  content_name: 'ABIHAYAT_Premium',
+                  value: 50,
+                  currency: 'UZS',
+                  region: leadData.region
+                }
+              }
+            ]
+          };
+
+          fetch(`https://graph.facebook.com/v19.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(err => console.error('CAPI Error:', err));
+        } catch (e) {
+          console.error('CAPI Hash Error:', e);
+        }
+      }
+
       // === ANIMATION OBSERVER ===
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -626,6 +694,7 @@
 
       let spinning = false;
       let leadData = null;
+      let currentEventId = null;
 
       function drawWheel(rotationDeg = 0) {
         const w = wheelCanvas.width;
@@ -740,6 +809,10 @@
           }
 
           leadData = { name, phone: '+998' + phone, region };
+          
+          // Deduplication uchun unikal Event ID yaratamiz
+          currentEventId = 'lead_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
           stepForm.style.display = 'none';
           stepWheel.style.display = 'block';
           setTimeout(() => drawWheel(0), 50);
@@ -775,10 +848,18 @@
 
               sendData({ ism: leadData.name, raqam: leadData.phone, viloyat: leadData.region, imtiyoz: actualReward, vaqt: new Date().toLocaleString('uz-UZ') });
 
+              // 1. Meta Pixel (Browser Event)
               if (typeof fbq !== 'undefined') {
-                fbq('track', 'Lead', { content_name: 'ABIHAYAT_Premium', value: 50, currency: 'UZS' });
+                fbq('track', 'Lead', { 
+                  content_name: 'ABIHAYAT_Premium', 
+                  value: 50, 
+                  currency: 'UZS' 
+                }, { eventID: currentEventId });
               }
-              
+
+              // 2. Meta Conversions API (Server Event)
+              sendCAPILeadEvent(leadData, currentEventId);
+
               onSpinComplete(actualReward);
             }
           }
