@@ -555,6 +555,8 @@ svg{display:block;flex-shrink:0}
 
 /* ============================ BATAFSIL FILTR PANELI ============================ */
 .fx-wrap{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:70px 16px 16px}
+/* hidden atributi ishlashi uchun — aks holda display:flex uni bosib ketadi */
+.fx-wrap[hidden]{display:none}
 .fx-back{position:absolute;inset:0;background:rgba(5,13,32,.42);backdrop-filter:blur(2px)}
 .fx-panel{position:relative;background:var(--paper);border-radius:16px;box-shadow:var(--shadow-lg);
   width:900px;max-width:100%;max-height:calc(100vh - 90px);display:grid;
