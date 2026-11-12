@@ -159,6 +159,10 @@ textarea.field { height: auto; padding: 10px 12px; resize: vertical; line-height
 .form-grid .full { grid-column: 1 / -1; }
 .hint { font-size: 12px; color: var(--ink-3); margin-top: 5px; }
 .hint.warn { color: var(--warn); }
+.field.invalid, .field.invalid:focus { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
+.ph-field { position: relative; display: block; min-width: 0; }
+.ph-pre { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13.5px; font-weight: 600; color: var(--ink-2); pointer-events: none; font-variant-numeric: tabular-nums; }
+.ph-field > .field { width: 100%; padding-left: 52px; font-variant-numeric: tabular-nums; }
 .check { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
 
 /* ============ Small parts ============ */
@@ -385,6 +389,9 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .opt { height: 28px; padding: 0 10px; border-radius: 99px; border: 1px solid var(--line-strong); font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
 .opt:hover { background: var(--surface-3); }
 .opt.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.opt-n { margin-left: 5px; opacity: .6; font-variant-numeric: tabular-nums; }
+.opt.on .opt-n { opacity: .85; }
+.tl-filters { margin: 14px 0 2px; padding-top: 14px; border-top: 1px solid var(--line); }
 
 /* ============ Modal ============ */
 .overlay { position: fixed; inset: 0; z-index: 100; background: var(--scrim); display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -462,7 +469,9 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .pf-acts { display: inline-flex; flex-shrink: 0; }
 .pf-row.with-acts { grid-template-columns: 116px minmax(0, 1fr); }
 .pf-row.with-acts .pf-c { flex-wrap: wrap; }
-.pf-row.with-acts .field { flex: 1 1 150px; }
+.pf-row.with-acts .ph-field { flex: 1 1 150px; }
+.pf-err { flex-basis: 100%; font-size: 12px; font-weight: 500; color: var(--bad); }
+.pf-err[hidden] { display: none; }
 .kv { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: 9px 12px; font-size: 13.5px; align-items: center; }
 .kv dt { color: var(--ink-3); }
 .kv dd { font-weight: 500; overflow-wrap: anywhere; }
@@ -725,6 +734,7 @@ button.list-row:hover { background: var(--surface-2); }
 <div id="bulkbar" class="bulkbar" role="toolbar" aria-label="Tanlangan bitimlar bilan amallar">
   <div class="bb-info"><b id="bbCount">0</b> ta tanlandi <span id="bbSum"></span></div>
   <button class="btn bb-main" data-act="bulk-owner"><i data-ic="userCheck" data-s="16"></i><span class="bb-t">Menejerga o‘tkazish</span></button>
+  <button class="btn" data-act="bulk-stage"><i data-ic="swap" data-s="16"></i><span class="bb-t">Bosqichni almashtirish</span></button>
   <button class="btn" data-act="bulk-task"><i data-ic="calendar" data-s="16"></i><span class="bb-t">Vazifa qo‘shish</span></button>
   <button class="btn" data-act="bulk-export" title="Tanlanganlarni CSV qilib yuklash"><i data-ic="download" data-s="16"></i><span class="bb-t">CSV</span></button>
   <button class="btn bb-del" data-act="bulk-delete" title="Tanlanganlarni o‘chirish"><i data-ic="trash" data-s="16"></i></button>
@@ -762,7 +772,8 @@ button.list-row:hover { background: var(--surface-2); }
         </div>
         <div>
           <label class="lbl" for="f_client_phone">Telefon</label>
-          <input id="f_client_phone" class="field" placeholder="+998 90 123-45-67" inputmode="tel">
+          <span class="ph-field"><span class="ph-pre">+998</span><input id="f_client_phone" class="field" data-phone placeholder="99 763 73 83" inputmode="numeric" autocomplete="off"></span>
+          <div id="phoneErr" class="hint hidden" style="color:var(--bad);"></div>
           <div id="phoneHint" class="hint warn hidden"></div>
         </div>
         <div>
@@ -790,10 +801,6 @@ button.list-row:hover { background: var(--surface-2); }
         <div>
           <label class="lbl" for="f_deal_funnel">Varonka</label>
           <select id="f_deal_funnel" class="field"></select>
-        </div>
-        <div>
-          <label class="lbl" for="f_deal_source">Lid manbasi</label>
-          <select id="f_deal_source" class="field"></select>
         </div>
         <div>
           <label class="lbl" for="f_client_city">Viloyat</label>
@@ -1023,10 +1030,15 @@ const CITIES = ["Toshkent","Toshkent viloyati","Andijon","Buxoro","Farg'ona","Ji
 /* Bemorning barcha raqamlari: asosiy + qo'shimcha */
 const extraPhones = c => (Array.isArray((c || {}).phones) ? c.phones : []).filter(p => p && String(p).trim());
 /* Qo‘ng‘iroq uchun mahalliy raqam: +998 99 763 73 83 → 997637383 (telefon "99 763 73 83" ko‘rinishida teradi) */
-function localPhone(p) { const d = digits(p); return d.length === 12 && d.slice(0, 3) === "998" ? d.slice(3) : d; }
-function localPhoneFmt(p) { const d = localPhone(p); return d.length === 9 ? d.slice(0, 2) + " " + d.slice(2, 5) + " " + d.slice(5, 7) + " " + d.slice(7) : String(p || "").trim(); }
+const last9 = p => digits(p).slice(-9);
+const fmtLocal = d => [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(" ");
+/* Qo‘ng‘iroq va nusxalash uchun: faqat oxirgi 9 ta raqam (+998 99 763 73 83 → 997637383) */
+function localPhone(p) { return last9(p); }
+function localPhoneFmt(p) { const d = last9(p); return d.length === 9 ? fmtLocal(d) : String(p || "").trim(); }
+/* Saqlanadigan ko‘rinish: +998 99 763 73 83 */
+const fullPhone = d9 => "+998 " + fmtLocal(d9);
 /* Telegram va WhatsApp uchun xalqaro raqam: 99 763 73 83 → 998997637383 */
-function intlPhone(p) { const d = digits(p); return d.length === 9 ? "998" + d : d; }
+function intlPhone(p) { const d = last9(p); return d.length === 9 ? "998" + d : digits(p); }
 const phoneHas = (c, qd) => [(c || {}).phone].concat(extraPhones(c)).some(p => digits(p).includes(qd));
 const SOURCES = ["Instagram","Telegram Ads","Tavsiya","Sayt","Qo'ng'iroq"];
 const PERIODS = [
@@ -1220,6 +1232,50 @@ function playSound(type) {
     osc.start(now); osc.stop(now + cfg[3]);
   } catch (e) {}
 }
+
+/* --- Telefon maydoni: "+998" o‘zgarmas, inputga aynan 9 ta raqam ---
+   Ortiq raqam yozilmaydi, harf va belgilar tushmaydi; to‘liq +998 raqam qo‘yilsa, 998 o‘zi olib tashlanadi. */
+function applyPhoneMask(el) {
+  const raw = el.value, pos = el.selectionStart == null ? raw.length : el.selectionStart;
+  let d = digits(raw), before = digits(raw.slice(0, pos)).length;
+  if (d.length > 9 && d.slice(0, 3) === "998") { d = d.slice(3); before = Math.max(0, before - 3); }
+  d = d.slice(0, 9);
+  before = Math.min(before, d.length);
+  const out = fmtLocal(d);
+  if (out !== raw) {
+    el.value = out;
+    let i = 0, seen = 0;
+    while (i < out.length && seen < before) { if (/\d/.test(out[i])) seen++; i++; }
+    if (document.activeElement === el) { try { el.setSelectionRange(i, i); } catch (e) {} }
+  }
+  if (d.length === 9 || d.length === 0) setPhoneError(el, "");
+}
+function phoneErrEl(el) {
+  if (el.id === "f_client_phone") return $("#phoneErr");
+  const box = el.closest(".pf-c");
+  return box ? box.querySelector(".pf-err") : null;
+}
+function setPhoneError(el, msg) {
+  el.classList.toggle("invalid", !!msg);
+  el.setAttribute("aria-invalid", msg ? "true" : "false");
+  const e = phoneErrEl(el);
+  if (e) { e.textContent = msg; e.hidden = !msg; e.classList.toggle("hidden", !msg); }
+}
+const phoneMsg = n => n ? `+998 dan keyin aynan 9 ta raqam kerak (hozir ${n} ta)` : "Raqamni kiriting: +998 dan keyin 9 ta raqam";
+document.addEventListener("beforeinput", e => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement) || !t.hasAttribute("data-phone")) return;
+  if (e.inputType === "insertText" && e.data && e.data.length === 1) {
+    const noSel = t.selectionStart === t.selectionEnd;
+    const d = digits(t.value), atEnd = t.selectionStart === t.value.length;
+    /* 998 bilan boshlab terilsa (998 99 763 73 83), ortiqcha 998 niqobda olib tashlanadi */
+    if (/\D/.test(e.data) || (noSel && d.length >= 9 && !(d.slice(0, 3) === "998" && atEnd))) e.preventDefault();
+  }
+}, true);
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t instanceof HTMLInputElement && t.hasAttribute("data-phone")) applyPhoneMask(t);
+}, true);
 
 /* --- Jarayon animatsiyasi: 1 soniyalik foizli aylana ---
    Har bir amal (izohdan tashqari) shu oyna orqali bajariladi. Amal darhol boshlanadi, aylana 1 soniyada
@@ -1427,7 +1483,7 @@ function generateDemoDeals() {
   const codes = ["90","91","93","94","95","97","98","99","88","33"];
   let seed = 20261112;
   const rnd = n => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed >>> 11) % n; };
-  const phone = () => { const n = String(1000000 + rnd(8999999)); return `+998 ${codes[rnd(codes.length)]} ${n.slice(0, 3)}-${n.slice(3, 5)}-${n.slice(5, 7)}`; };
+  const phone = () => { const n = String(1000000 + rnd(8999999)); return `+998 ${codes[rnd(codes.length)]} ${n.slice(0, 3)} ${n.slice(3, 5)} ${n.slice(5, 7)}`; };
   const sellers = MANAGERS.filter(m => !isAdminRole(m.role)), admin = MANAGERS.find(m => isAdminRole(m.role)) || MANAGERS[0];
   const now = Date.now(), H = 3600000, D = 86400000, out = [];
   for (let i = 0; i < 100; i++) {
@@ -1676,7 +1732,7 @@ function addTaskToDeals(ids, title, dueTs, ownerName) {
 }
 
 /* ======================= HOLAT (STATE) ======================= */
-const emptyFilters = () => ({ q: "", stages: [], owners: [], funnels: [], sources: [], cities: [], status: "", task: "", period: "", from: "", to: "", bmin: "", bmax: "" });
+const emptyFilters = () => ({ q: "", stages: [], owners: [], funnels: [], cities: [], status: "", task: "", period: "", from: "", to: "", bmin: "", bmax: "" });
 const S = {
   view: "deals",
   mode: LS.raw("dcrm_mode") === "kanban" ? "kanban" : "list",
@@ -1691,11 +1747,12 @@ const S = {
   drawerId: null,
   views: LS.get("dcrm_views", []),
   tasksScope: "all",
+  tlFilter: "all",
   clientQ: "",
   loading: false,
   loadError: ""
 };
-const ARR_KEYS = ["stages", "owners", "funnels", "sources", "cities"];
+const ARR_KEYS = ["stages", "owners", "funnels", "cities"];
 function normF(f) {
   const o = emptyFilters();
   if (f && typeof f === "object") Object.keys(o).forEach(k => {
@@ -1748,7 +1805,6 @@ function matchDeal(d, f, skip) {
   if (skip !== "stages" && f.stages.length && !f.stages.includes(d.stage)) return false;
   if (skip !== "owners" && f.owners.length && !f.owners.includes(d.owner || "")) return false;
   if (skip !== "funnels" && f.funnels.length && !f.funnels.includes(d.funnel)) return false;
-  if (skip !== "sources" && f.sources.length && !f.sources.includes(c.source || "")) return false;
   if (skip !== "cities" && f.cities.length && !f.cities.includes(c.city || "")) return false;
   if (f.status === "open" && !isOpenDeal(d)) return false;
   if (f.status === "won" && d.stage !== WON) return false;
@@ -1811,7 +1867,6 @@ function filterChips() {
   f.stages.forEach(v => out.push(chip(stageName(v), "stages", v)));
   f.owners.forEach(v => out.push(chip(v || "Mas’ulsiz", "owners", v)));
   f.funnels.forEach(v => out.push(chip(v, "funnels", v)));
-  f.sources.forEach(v => out.push(chip("Manba: " + (v || "ko‘rsatilmagan"), "sources", v)));
   f.cities.forEach(v => out.push(chip(v || "Shahar ko‘rsatilmagan", "cities", v)));
   if (f.status) out.push(chip("Holat: " + STATUS_L[f.status], "status"));
   if (f.task) out.push(chip("Vazifa: " + TASK_L[f.task], "task"));
@@ -1822,7 +1877,7 @@ function filterChips() {
   if (f.bmin !== "" || f.bmax !== "") out.push(chip("Summa: " + (f.bmin !== "" ? fmtShort(f.bmin) : "0") + " — " + (f.bmax !== "" ? fmtShort(f.bmax) : "∞"), "budget"));
   return out;
 }
-const moreFilterCount = f => f.funnels.length + f.sources.length + f.cities.length + (f.status ? 1 : 0) + (f.task ? 1 : 0) + (f.bmin !== "" || f.bmax !== "" ? 1 : 0);
+const moreFilterCount = f => f.funnels.length + f.cities.length + (f.status ? 1 : 0) + (f.task ? 1 : 0) + (f.bmin !== "" || f.bmax !== "" ? 1 : 0);
 
 function renderDeals() {
   const c = $("#view-deals");
@@ -2042,6 +2097,13 @@ function toggleSelect(id, on, shift) {
 function clearSelection() { S.sel.clear(); S.lastSel = null; syncSelectionUI(); }
 
 /* --- Popover tarkiblari --- */
+/* Belgilangan bitimlar uchun bosqich tanlash (keyin tasdiq so‘raladi) */
+function bulkStagePopHtml(ids) {
+  const ds = ids.map(findDeal).filter(Boolean), cnt = {};
+  ds.forEach(d => { cnt[d.stage] = (cnt[d.stage] || 0) + 1; });
+  return `<div class="pop-head">${plural(ds.length)}ni qaysi bosqichga o‘tkazamiz?</div>
+    <div class="pop-body">${STAGES.map(st => `<button class="pop-item" data-act="bulk-stage-go" data-stage="${st}"><i class="sw" style="--c:${stageHex(st)}"></i>${esc(stageName(st))}${cnt[st] ? `<span class="n">${cnt[st]} tasi shu yerda</span>` : ""}</button>`).join("")}</div>`;
+}
 function ownerPopHtml(ids, q) {
   const cur = ids.length === 1 ? (findDeal(ids[0]) || {}).owner : null;
   const mgrs = assignable();
@@ -2090,7 +2152,6 @@ function filterPopHtml(k) {
   return `<div class="pop-body" style="padding:4px 2px 10px;">
     ${group("Holat", "status", Object.keys(STATUS_L).map(v => ({ v, l: STATUS_L[v] })), true)}
     ${group("Vazifa", "task", Object.keys(TASK_L).map(v => ({ v, l: TASK_L[v] })), true)}
-    ${group("Lid manbasi", "sources", fac("sources", d => (d.client || {}).source, SOURCES, "Ko‘rsatilmagan"))}
     ${group("Shahar", "cities", fac("cities", d => (d.client || {}).city, [], "Ko‘rsatilmagan"))}
     ${group("Varonka", "funnels", fac("funnels", d => d.funnel, FUNNELS, "Ko‘rsatilmagan"))}
     <div class="pop-sec"><h4>Summa, so‘m</h4>
@@ -2111,10 +2172,10 @@ function exportCSV(deals, label) {
 }
 function buildCSV(deals, label) {
   const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-  const headers = ["ID", "Nomi", "Mas’ul", "Bosqich", "Varonka", "Summa (UZS)", "Mijoz", "Telefon", "Shahar", "Manzil", "Manba", "Mahsulot", "Soni", "Yaratilgan", "Keyingi vazifa"];
+  const headers = ["ID", "Nomi", "Mas’ul", "Bosqich", "Varonka", "Summa (UZS)", "Mijoz", "Telefon", "Shahar", "Manzil", "Mahsulot", "Soni", "Yaratilgan", "Keyingi vazifa"];
   const rows = deals.map(d => {
     const c = d.client || {}, t = nextTask(d);
-    return [d.id, d.name, d.owner, stageName(d.stage), d.funnel, d.budget, c.name, c.phone, c.city, c.addr, c.source, d.product, d.qty, d.created, t ? t.title + " (" + t.due + ")" : ""].map(q).join(";");
+    return [d.id, d.name, d.owner, stageName(d.stage), d.funnel, d.budget, c.name, c.phone, c.city, c.addr, d.product, d.qty, d.created, t ? t.title + " (" + t.due + ")" : ""].map(q).join(";");
   });
   const blob = new Blob(["﻿" + [headers.map(q).join(";")].concat(rows).join("\r\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob), a = document.createElement("a");
@@ -2149,12 +2210,38 @@ function evText(ev) {
   if (ev.kind === "create") return `${by} bitim yaratdi`;
   return esc(ev.text || ev.title || "Yozuv");
 }
+/* Tarix filtri: izohlar, amallar va turlari bo‘yicha */
+const evKind = ev => {
+  const k = ev.kind || ({ comment: "comment", note: "comment", call: "call", stage: "stage", task: "task" })[ev.t] || "";
+  return ["comment", "call", "stage", "task"].includes(k) ? k : "edit";
+};
+const TL_FILTERS = [
+  { k: "all", l: "Hammasi", fn: () => true, keep: true },
+  { k: "comment", l: "Izohlar", fn: k => k === "comment", keep: true },
+  { k: "action", l: "Amallar", fn: k => k !== "comment", keep: true },
+  { k: "call", l: "Qo‘ng‘iroqlar", fn: k => k === "call" },
+  { k: "stage", l: "Bosqichlar", fn: k => k === "stage" },
+  { k: "task", l: "Vazifalar", fn: k => k === "task" },
+  { k: "edit", l: "O‘zgarishlar", fn: k => k === "edit" }
+];
+const tlFilter = () => TL_FILTERS.find(x => x.k === S.tlFilter) || TL_FILTERS[0];
+function tlFiltersHtml(d) {
+  const kinds = (d.events || []).map(evKind);
+  return TL_FILTERS.map(x => {
+    const n = kinds.filter(x.fn).length, on = x.k === tlFilter().k;
+    if (!n && !x.keep && !on) return "";
+    return `<button class="opt ${on ? "on" : ""}" data-act="tl-filter" data-k="${x.k}" aria-pressed="${on}">${x.l}<span class="opt-n">${n}</span></button>`;
+  }).join("");
+}
 function timelineHtml(d) {
-  return (d.events || []).length ? d.events.map(ev => `
+  const f = tlFilter(), list = (d.events || []).filter(ev => f.fn(evKind(ev)));
+  if (!(d.events || []).length) return `<p class="muted" style="padding:10px 0;">Hali yozuv yo‘q.</p>`;
+  if (!list.length) return `<p class="muted" style="padding:10px 0;">Bu turdagi yozuv yo‘q.</p>`;
+  return list.map(ev => `
     <div class="tl-item">
       <div class="tl-ic ${ev.kind === "call" ? "call" : ev.kind === "stage" ? "is-stage" : ""}">${ic(EV_ICON[ev.kind] || "pin", 14)}</div>
       <div class="grow"><div style="overflow-wrap:anywhere;">${evText(ev)}</div><div class="tl-time">${esc(fmtWhen(ev.ts))}</div></div>
-    </div>`).join("") : `<p class="muted" style="padding:10px 0;">Hali yozuv yo‘q.</p>`;
+    </div>`).join("");
 }
 function contactHtml(phone) {
   const ph = digits(phone);
@@ -2162,7 +2249,11 @@ function contactHtml(phone) {
   return `<a class="icon-btn sm" href="tel:${localPhone(ph)}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(ph))}">${ic("phone", 15)}</a>
     <a class="icon-btn sm" href="https://t.me/+${intlPhone(ph)}" target="_blank" rel="noopener" title="Telegram">${ic("send", 15)}</a>
     <a class="icon-btn sm" href="https://wa.me/${intlPhone(ph)}" target="_blank" rel="noopener" title="WhatsApp">${ic("wa", 15)}</a>
-    <button class="icon-btn sm" data-act="copy" data-text="${esc(phone)}" title="Raqamni nusxalash">${ic("copy", 14)}</button>`;
+    <button class="icon-btn sm" data-act="copy" data-text="${esc(last9(phone))}" title="Raqamni nusxalash: ${esc(last9(phone))}">${ic("copy", 14)}</button>`;
+}
+/* Qo‘shimcha raqam yonidagi tugmalar: qo‘ng‘iroq, nusxalash (oxirgi 9 raqam), olib tashlash */
+function extraActsHtml(p, i) {
+  return `${last9(p).length === 9 ? `<a class="icon-btn sm" href="tel:${last9(p)}" title="Qo‘ng‘iroq qilish: ${esc(fmtLocal(last9(p)))}">${ic("phone", 15)}</a><button class="icon-btn sm" data-act="copy" data-text="${esc(last9(p))}" title="Raqamni nusxalash: ${esc(last9(p))}">${ic("copy", 14)}</button>` : ""}<button class="icon-btn sm" data-act="ph-del" data-i="${i}" title="Raqamni olib tashlash">${ic("x", 15)}</button>`;
 }
 const subLine = d => esc(d.product || "Mahsulot ko‘rsatilmagan") + ((d.qty || 1) > 1 ? `, ${d.qty} dona` : "");
 /* Bemor varaqasi: chapda tahrirlanadigan ma'lumotlar, o'ngda vazifalar va tarix — hammasi bitta varaqda. */
@@ -2183,6 +2274,7 @@ function renderDrawer(fresh) {
   const phones = Array.isArray(c.phones) ? c.phones : [];
   const row = (label, ctrl, cls) => `<div class="pf-row ${cls || ""}"><span class="pf-l">${label}</span><div class="pf-c">${ctrl}</div></div>`;
   const inp = (f, v, label, extra) => `<input class="field" data-f="${f}" value="${esc(v == null ? "" : v)}" aria-label="${label}" autocomplete="off" ${extra || ""}>`;
+  const phoneInp = (f, v, label, extra) => `<span class="ph-field"><span class="ph-pre">+998</span><input class="field" data-f="${f}" data-phone value="${esc(fmtLocal(last9(v)))}" aria-label="${label}" inputmode="numeric" autocomplete="off" placeholder="99 763 73 83" ${extra || ""}></span>`;
   const sel = (f, arr, v, label) => `<select class="field" data-f="${f}" aria-label="${label}">${v ? "" : `<option value="">Tanlang</option>`}${optList(withCurrent(arr, v), v)}</select>`;
 
   el.innerHTML = `
@@ -2218,12 +2310,11 @@ function renderDrawer(fresh) {
         <div class="card card-pad pf dr-a">
           <h3 class="card-title">Bemor ma’lumotlari</h3>
           ${row("F.I.Sh.", inp("cname", c.name, "Bemor ismi", 'placeholder="Ism va familiya"'))}
-          ${row("Asosiy telefon", inp("phone", c.phone, "Asosiy telefon", 'inputmode="tel" placeholder="+998 90 123-45-67"') + `<span class="pf-acts" id="drContact">${contactHtml(c.phone)}</span>`, "with-acts")}
-          ${phones.map((p, i) => row("Qo‘shimcha raqam", inp("phone2", p, "Qo‘shimcha raqam", `data-i="${i}" inputmode="tel" placeholder="+998"`) + `<span class="pf-acts">${digits(p).length >= 7 ? `<a class="icon-btn sm" href="tel:${localPhone(digits(p))}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(digits(p)))}">${ic("phone", 15)}</a>` : ""}<button class="icon-btn sm" data-act="ph-del" data-i="${i}" title="Raqamni olib tashlash">${ic("x", 15)}</button></span>`, "with-acts")).join("")}
+          ${row("Asosiy telefon", phoneInp("phone", c.phone, "Asosiy telefon") + `<span class="pf-acts" id="drContact">${contactHtml(c.phone)}</span><span class="pf-err" hidden></span>`, "with-acts")}
+          ${phones.map((p, i) => row("Qo‘shimcha raqam", phoneInp("phone2", p, "Qo‘shimcha raqam", `data-i="${i}"`) + `<span class="pf-acts">${extraActsHtml(p, i)}</span><span class="pf-err" hidden></span>`, "with-acts")).join("")}
           ${row("", `<button class="link-btn" data-act="ph-add" style="margin-left:-6px;">${ic("plus", 13, 2.5)} Qo‘shimcha raqam qo‘shish</button>`, "tight")}
           ${row("Viloyat", sel("city", CITIES, c.city, "Viloyat"))}
           ${row("Manzil", `<textarea class="field" data-f="addr" rows="2" aria-label="Manzil" placeholder="Tuman, ko‘cha, uy — qo‘lda yoziladi">${esc(c.addr || "")}</textarea>`, "top")}
-          ${row("Lid manbasi", sel("source", SOURCES, c.source, "Lid manbasi"))}
 
           <h3 class="card-title pf-sec">Buyurtma</h3>
           ${row("Bitim nomi", inp("name", d.name, "Bitim nomi"))}
@@ -2254,14 +2345,11 @@ function renderDrawer(fresh) {
           <div class="card card-pad dr-c">
             <h3 class="card-title" style="margin-bottom:12px;">Tarix va izohlar</h3>
             <textarea id="newCommentText" class="field" rows="3" placeholder="Bemor bilan nima kelishildi? Izoh yozing…">${esc(draft)}</textarea>
-            <div class="row between wrap" style="margin:8px 0 6px;">
-              <div class="opts">
-                <button class="opt" data-act="quick-tag" data-tag="Qo‘ng‘iroq qilindi">Qo‘ng‘iroq</button>
-                <button class="opt" data-act="quick-tag" data-tag="Telegramda yozildi">Telegram</button>
-                <button class="opt" data-act="quick-tag" data-tag="Kuryerga berildi">Kuryer</button>
-              </div>
-              <button class="btn btn-primary btn-sm" data-act="post-comment" title="Ctrl+Enter">Izoh qo‘shish</button>
+            <div class="row between" style="margin-top:8px;">
+              <span class="muted" style="font-size:12px;">Ctrl+Enter — yuborish</span>
+              <button class="btn btn-primary btn-sm" data-act="post-comment">Izoh qo‘shish</button>
             </div>
+            <div class="opts tl-filters" id="drTlFilters" role="group" aria-label="Tarixni saralash">${tlFiltersHtml(d)}</div>
             <div class="timeline" id="drTimeline">${timelineHtml(d)}</div>
           </div>
       </div>
@@ -2298,8 +2386,25 @@ async function confirmStage(id, stage) {
   if (await askStageChange(d, stage)) changeStage([id], stage);
 }
 
+async function confirmBulkStage(ids, stage) {
+  const ds = ids.map(findDeal).filter(Boolean), moving = ds.filter(d => d.stage !== stage);
+  if (!moving.length) { toast("Tanlangan bitimlar allaqachon shu bosqichda"); return; }
+  const cnt = {};
+  moving.forEach(d => { cnt[d.stage] = (cnt[d.stage] || 0) + 1; });
+  const now = Object.keys(cnt).sort((a, b) => STAGES.indexOf(a) - STAGES.indexOf(b)).map(st => `${stageName(st)} — ${cnt[st]}`).join(", ");
+  const skip = ds.length - moving.length;
+  const ok = await confirmBox({
+    title: "Bosqich o‘zgarsinmi?",
+    html: `<span class="stage-change"><span class="tag">${plural(moving.length)}</span>${ic("chevR", 16, 2.5)}${stageBadge(stage)}</span><span class="stage-change-who">Hozir: ${esc(now)}${skip ? `. ${skip} tasi allaqachon shu bosqichda` : ""}</span>`,
+    ok: "Ha, o‘zgartirish",
+    cancel: "Yo‘q",
+    danger: false
+  });
+  if (ok) changeStage(moving.map(d => sid(d.id)), stage);
+}
+
 /* --- Varaqadagi maydonni joyida saqlash --- */
-const FIELD_L = { cname: "F.I.Sh.", phone: "asosiy telefon", phone2: "qo‘shimcha raqam", city: "viloyat", addr: "manzil", source: "lid manbasi", name: "bitim nomi", product: "mahsulot", qty: "soni", budget: "summa", order: "buyurtma sanasi", funnel: "varonka" };
+const FIELD_L = { cname: "F.I.Sh.", phone: "asosiy telefon", phone2: "qo‘shimcha raqam", city: "viloyat", addr: "manzil", name: "bitim nomi", product: "mahsulot", qty: "soni", budget: "summa", order: "buyurtma sanasi", funnel: "varonka" };
 function logField(d, label) {
   const e = (d.events || [])[0];
   if (e && e.kind === "field" && e.by === ME.name && Array.isArray(e.labels) && Date.now() - e.ts < 600000) {
@@ -2314,6 +2419,7 @@ function drawerPatch(d) {
   set("#drSub", subLine(d));
   set("#drMoney", fmtMoney(d.budget));
   set("#drContact", contactHtml(c.phone));
+  set("#drTlFilters", tlFiltersHtml(d));
   set("#drTimeline", timelineHtml(d));
 }
 /* Varaqadagi maydon saqlanishi: sarlavhada kichik foizli aylana (yozishni to‘xtatmaydi) */
@@ -2363,9 +2469,21 @@ function saveField(el) {
   const num = f === "qty" ? Math.max(1, Math.round(Number(v) || 1)) : f === "budget" ? Math.max(0, Number(v) || 0) : null;
   let changed = false;
   const put = (obj, key, val) => { if ((obj[key] == null ? "" : obj[key]) !== val) { obj[key] = val; changed = true; } };
-  if (f === "cname") put(c, "name", v);
-  else if (f === "phone" || f === "city" || f === "addr" || f === "source") put(c, f, v);
-  else if (f === "phone2") { const i = Number(el.dataset.i); c.phones = Array.isArray(c.phones) ? c.phones : []; if ((c.phones[i] || "") !== v) { c.phones[i] = v; changed = true; } }
+  if (f === "phone" || f === "phone2") {
+    const d9 = digits(v);
+    if (d9.length !== 9 && !(f === "phone2" && !d9.length)) { setPhoneError(el, phoneMsg(d9.length)); return; }
+    setPhoneError(el, "");
+    const val = d9.length ? fullPhone(d9) : "";
+    if (f === "phone") { if (last9(c.phone) !== d9) { c.phone = val; changed = true; } }
+    else {
+      const i = Number(el.dataset.i), acts = el.closest(".pf-c") && el.closest(".pf-c").querySelector(".pf-acts");
+      c.phones = Array.isArray(c.phones) ? c.phones : [];
+      if (last9(c.phones[i]) !== d9) { c.phones[i] = val; changed = true; }
+      if (acts) acts.innerHTML = extraActsHtml(val, i);
+    }
+  }
+  else if (f === "cname") put(c, "name", v);
+  else if (f === "city" || f === "addr") put(c, f, v);
   else if (f === "qty" || f === "budget") { if ((Number(d[f]) || 0) !== num) { d[f] = num; changed = true; } el.value = num; }
   else if (f in FIELD_L) put(d, f, v);
   if (changed) persistCard(d, snap, FIELD_L[f] || f);
@@ -2393,6 +2511,7 @@ async function postComment() {
   if (!ta || !d) return;
   const text = ta.value.trim();
   if (!text) { ta.focus(); return; }
+  if (!tlFilter().fn("comment")) S.tlFilter = "all";
   const ev = addEvent(d, "comment", `${meB()}: ${esc(text).replace(/\n/g, "<br>")}`);
   ta.value = "";
   refreshAll();
@@ -2518,7 +2637,7 @@ function renderClients() {
   const map = new Map();
   DEALS.forEach(d => {
     const cl = d.client || {}, key = digits(cl.phone) || (cl.name || "nomsiz").trim().toLowerCase();
-    if (!map.has(key)) map.set(key, { name: cl.name || "Nomsiz mijoz", phone: cl.phone || "", city: cl.city || "", source: cl.source || "", total: 0, won: 0, n: 0, last: 0 });
+    if (!map.has(key)) map.set(key, { name: cl.name || "Nomsiz mijoz", phone: cl.phone || "", city: cl.city || "", total: 0, won: 0, n: 0, last: 0 });
     const x = map.get(key);
     x.total += d.budget || 0; x.n++; x.last = Math.max(x.last, d.createdTs || 0);
     if (d.stage === WON) x.won += d.budget || 0;
@@ -2535,13 +2654,12 @@ function renderClients() {
     </div>
     ${shown.length ? `<div class="card" style="overflow:auto;">
       <table class="tbl">
-        <thead><tr><th>Mijoz</th><th>Telefon</th><th class="hide-md">Shahar</th><th class="hide-md">Manba</th><th style="text-align:center;">Bitimlar</th><th class="c-money">Yutilgan savdo</th><th class="c-money hide-md">Jami summa</th><th class="hide-md">Oxirgi murojaat</th><th class="c-act"></th></tr></thead>
+        <thead><tr><th>Mijoz</th><th>Telefon</th><th class="hide-md">Shahar</th><th style="text-align:center;">Bitimlar</th><th class="c-money">Yutilgan savdo</th><th class="c-money hide-md">Jami summa</th><th class="hide-md">Oxirgi murojaat</th><th class="c-act"></th></tr></thead>
         <tbody>${shown.map(x => { const ph = digits(x.phone); return `
           <tr data-act="client-deals" data-q="${esc(x.phone || x.name)}" title="Mijoz bitimlarini ko‘rish">
             <td><div class="row">${avatar(x.name)}<span class="t-main ellipsis" style="max-width:220px;">${esc(x.name)}</span></div></td>
             <td class="num">${esc(x.phone || "—")}</td>
             <td class="sub hide-md">${esc(x.city || "—")}</td>
-            <td class="hide-md">${x.source ? `<span class="tag">${esc(x.source)}</span>` : "—"}</td>
             <td style="text-align:center;"><span class="tag ${x.n > 1 ? "accent" : ""}">${x.n}</span></td>
             <td class="c-money" style="${x.won ? "color:var(--ok);" : "color:var(--ink-3);font-weight:500;"}">${x.won ? fmtMoney(x.won) : "—"}</td>
             <td class="c-money hide-md" style="font-weight:500;">${fmtMoney(x.total)}</td>
@@ -2567,7 +2685,6 @@ function renderAnalytics() {
     return Array.from(m.values());
   };
   const cities = groupBy(d => (d.client || {}).city).sort((a, b) => b.sum - a.sum || b.n - a.n).slice(0, 8), maxCity = Math.max(1, ...cities.map(x => x.sum));
-  const sources = groupBy(d => (d.client || {}).source).sort((a, b) => b.n - a.n);
   const mgrs = managerList().map(m => {
     const ds = DEALS.filter(d => d.owner === m.name), w = ds.filter(d => d.stage === WON);
     return { m, n: ds.length, won: w.length, lost: ds.filter(d => LOST.includes(d.stage)).length, sum: sum(w, d => d.budget), over: ds.reduce((a, d) => a + (d.tasks || []).filter(t => taskState(t) === "overdue").length, 0) };
@@ -2593,18 +2710,12 @@ function renderAnalytics() {
           <td class="c-money">${fmtMoney(x.sum)}</td></tr>`).join("")}</tbody>
       </table>
     </div>
-    <div class="grid-eq">
+    <div>
       <div class="card card-pad">
         <h3 class="card-title" style="margin-bottom:10px;">Shaharlar bo‘yicha savdo</h3>
         ${cities.map(x => `<button class="funnel-row" style="--c:var(--accent);" data-act="goto" data-city="${esc(x.k === "Ko‘rsatilmagan" ? "" : x.k)}">
           <span class="ellipsis" style="font-weight:500;">${esc(x.k)}</span><span class="bar"><i style="width:${x.sum / maxCity * 100}%"></i></span>
           <span class="num sub" style="text-align:right;white-space:nowrap;">${fmtShort(x.sum)}</span></button>`).join("") || `<p class="muted">Ma’lumot yo‘q.</p>`}
-      </div>
-      <div class="card card-pad">
-        <h3 class="card-title" style="margin-bottom:10px;">Lid manbalari</h3>
-        ${sources.map(x => `<button class="list-row" data-act="goto" data-source="${esc(x.k === "Ko‘rsatilmagan" ? "" : x.k)}">
-          <span class="grow"><span style="font-weight:500;">${esc(x.k)}</span><span class="t-sub" style="display:block;">${x.n} ta lid, ${x.won} tasi yutilgan</span></span>
-          <span class="tag ${pct(x.won, x.n) >= 20 ? "ok" : ""}">${pct(x.won, x.n)}% konversiya</span></button>`).join("") || `<p class="muted">Ma’lumot yo‘q.</p>`}
       </div>
     </div>`;
 }
@@ -2691,7 +2802,6 @@ function openDealModal(deal) {
   $("#f_deal_funnel").innerHTML = optList(withCurrent(FUNNELS, deal && deal.funnel), deal ? deal.funnel : FUNNELS[0]);
   $("#f_deal_stage").innerHTML = STAGES.map(s => `<option value="${s}" ${s === (deal ? deal.stage : STAGES[0]) ? "selected" : ""}>${esc(stageName(s))}</option>`).join("");
   $("#f_deal_owner").innerHTML = optList(withCurrent(mgrNames, owner), owner);
-  $("#f_deal_source").innerHTML = optList(withCurrent(SOURCES, c.source), c.source || SOURCES[0]);
   $("#f_client_city").innerHTML = optList(withCurrent(CITIES, c.city), c.city || CITIES[0]);
   $("#f_deal_name").value = deal ? deal.name || "" : "";
   $("#f_deal_budget").value = deal ? deal.budget || "" : "";
@@ -2699,7 +2809,8 @@ function openDealModal(deal) {
   $("#f_deal_product").value = deal ? deal.product || "" : "ABIHAYAT";
   $("#f_deal_qty").value = deal ? deal.qty || 1 : 1;
   $("#f_client_name").value = c.name || "";
-  $("#f_client_phone").value = c.phone || "+998 ";
+  $("#f_client_phone").value = c.phone ? fmtLocal(last9(c.phone)) : "";
+  setPhoneError($("#f_client_phone"), "");
   $("#f_client_addr").value = c.addr || "";
   $("#phoneHint").classList.add("hidden");
   openModal("dealModal");
@@ -2707,7 +2818,7 @@ function openDealModal(deal) {
 }
 function phoneDupHint() {
   const ph = digits($("#f_client_phone").value), hint = $("#phoneHint");
-  const dups = ph.length >= 9 ? DEALS.filter(d => !same(d.id, editingDealId) && digits((d.client || {}).phone) === ph) : [];
+  const dups = ph.length === 9 ? DEALS.filter(d => !same(d.id, editingDealId) && [(d.client || {}).phone].concat(extraPhones(d.client)).some(p => last9(p) === ph)) : [];
   hint.classList.toggle("hidden", !dups.length);
   if (dups.length) hint.textContent = `Bu raqam bilan ${plural(dups.length)} bor: ${dups.slice(0, 2).map(d => d.name + " (" + stageName(d.stage) + ")").join(", ")}${dups.length > 2 ? "…" : ""}`;
 }
@@ -2715,15 +2826,17 @@ async function saveDealModal() {
   const v = id => $("#" + id).value.trim();
   const cName = v("f_client_name"), product = v("f_deal_product");
   let name = v("f_deal_name");
-  if (!name) name = [v("f_deal_source").toUpperCase(), product, cName].filter(Boolean).join(" ");
+  if (!name) name = [product, cName].filter(Boolean).join(" ");
   if (!name) { toast("Bitim nomi yoki mijoz ismini kiriting", "warn"); $("#f_deal_name").focus(); return; }
   const ownerName = $("#f_deal_owner").value, mgr = managerList().find(m => m.name === ownerName);
-  const phone = v("f_client_phone") === "+998" ? "" : v("f_client_phone");
+  const ph9 = digits($("#f_client_phone").value);
+  if (ph9.length !== 9) { setPhoneError($("#f_client_phone"), phoneMsg(ph9.length)); $("#f_client_phone").focus(); return; }
+  const phone = fullPhone(ph9);
   const fields = {
     name, budget: Number($("#f_deal_budget").value) || 0, order: $("#f_deal_order").value, funnel: $("#f_deal_funnel").value,
     stage: $("#f_deal_stage").value, product, qty: Number($("#f_deal_qty").value) || 1, owner: ownerName
   };
-  const clientPatch = { name: cName, phone, city: $("#f_client_city").value, addr: v("f_client_addr"), source: $("#f_deal_source").value };
+  const clientPatch = { name: cName, phone, city: $("#f_client_city").value, addr: v("f_client_addr") };
   const btn = $("#saveDealModalBtn");
   btn.disabled = true;
   return withProgress(editingDealId != null ? "Bitimni saqlash" : "Yangi bitim yaratish", async () => { try {
@@ -2965,7 +3078,7 @@ function renderCommandResults(query) {
     { title: "Boshqaruv paneli", desc: "Umumiy ko‘rsatkichlar", icon: "grid", action: () => switchView("dash") },
     { title: "Vazifalar", desc: "Barcha rejalashtirilgan ishlar", icon: "tasks", action: () => switchView("tasks") },
     { title: "Mijozlar", desc: "Mijozlar ro‘yxati", icon: "users", action: () => switchView("clients") },
-    { title: "Tahlil va reja", desc: "Konversiya, manbalar, menejerlar", icon: "chart", action: () => switchView("analytics") },
+    { title: "Tahlil va reja", desc: "Konversiya, shaharlar, menejerlar", icon: "chart", action: () => switchView("analytics") },
     { title: "Mavzuni almashtirish", desc: "Yorug‘ yoki tungi ko‘rinish", icon: "moon", action: () => toggleTheme() },
     { title: "Valyutani almashtirish", desc: "So‘m yoki dollar", icon: "swap", action: () => setCurrency(currentCurrency === "UZS" ? "USD" : "UZS") },
     { title: "CSV eksport", desc: "Barcha bitimlarni faylga yuklash", icon: "download", action: () => exportCSV(DEALS) }
@@ -3205,6 +3318,8 @@ const ACT = {
   },
   "distribute": () => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); openAssignModal(ids); },
   "bulk-owner": el => { const ids = selectedIds(); Pop.open(el, ownerPopHtml(ids), { ids }, { key: "bulk-owner", width: 320 }); },
+  "bulk-stage": el => { const ids = selectedIds(); Pop.open(el, bulkStagePopHtml(ids), { ids }, { key: "bulk-stage", width: 280 }); },
+  "bulk-stage-go": el => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); confirmBulkStage(ids, el.dataset.stage); },
   "bulk-task": () => openTaskModal(selectedIds()),
   "bulk-export": () => exportCSV(selectedIds().map(findDeal).filter(Boolean), "tanlanganlar"),
   "bulk-delete": () => deleteDeals(selectedIds()),
@@ -3229,15 +3344,14 @@ const ACT = {
   "dr-sms": () => { const d = findDeal(S.drawerId); if (d) openSmsModal(d); },
   "dr-invoice": () => { const d = findDeal(S.drawerId); if (d) openInvoiceModal(d); },
   "post-comment": () => postComment(),
-  "quick-tag": el => { const t = $("#newCommentText"); t.value = (t.value ? t.value.replace(/\s*$/, "") + "\n" : "") + el.dataset.tag + ": "; t.focus(); },
-  "copy": el => copyText(el.dataset.text, "Raqam nusxalandi"),
+  "tl-filter": el => { S.tlFilter = el.dataset.k; const d = findDeal(S.drawerId); if (d) drawerPatch(d); },
+  "copy": el => copyText(el.dataset.text, "Nusxalandi: " + el.dataset.text),
   "goto": el => {
     const ds = el.dataset;
     if (ds.preset) return gotoDeals(PRESETS.find(p => p.id === ds.preset).f());
     if (ds.stage) return gotoDeals({ stages: [ds.stage] });
     if (ds.owner != null) return gotoDeals({ owners: [ds.owner] });
     if (ds.city != null) return gotoDeals({ cities: [ds.city], status: "won" });
-    if (ds.source != null) return gotoDeals({ sources: [ds.source] });
   },
   "client-deals": el => gotoDeals({ q: el.dataset.q }),
   "team-transfer": el => {
