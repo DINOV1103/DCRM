@@ -338,13 +338,11 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 /* Kanban */
 .kanban { flex: 1; min-height: 0; display: flex; gap: 10px; overflow-x: auto; align-items: stretch; padding-bottom: 6px; }
 .kcol { --c: #7C8794; width: 272px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--surface-3); border-radius: var(--r-md); border: 1px solid transparent; min-height: 0; }
-.kcol.over { border-color: var(--accent); background: var(--accent-soft); }
 .kcol-head { padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: inset 0 3px 0 var(--c); border-radius: var(--r-md) var(--r-md) 0 0; }
 .kcol-body { flex: 1; min-height: 60px; overflow-y: auto; padding: 4px 8px 8px; display: flex; flex-direction: column; gap: 8px; }
-.kcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; cursor: grab; position: relative; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-1); }
+.kcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; cursor: pointer; position: relative; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-1); }
 .kcard:hover { border-color: var(--line-strong); }
 .kcard.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-.kcard.dragging { opacity: .35; }
 .kcard .check { position: absolute; top: 10px; right: 10px; opacity: 0; }
 .kcard:hover .check, .kcard.sel .check, .has-sel .kcard .check { opacity: 1; }
 .kcard .t-main { padding-right: 22px; }
@@ -410,9 +408,9 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .drawer-scrim { position: fixed; inset: 0; z-index: 70; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .18s; }
 .drawer-scrim.open { opacity: 1; pointer-events: auto; }
 .drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 80; width: min(1120px, 100vw);
-  background: var(--canvas); border-left: 1px solid var(--line); box-shadow: var(--shadow-3);
-  transform: translateX(102%); transition: transform .22s cubic-bezier(.3, .9, .3, 1);
+  position: fixed; top: 10px; right: 10px; bottom: 10px; left: 64px; z-index: 80;
+  background: var(--canvas); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-3);
+  transform: translateX(calc(100% + 80px)); transition: transform .24s cubic-bezier(.3, .9, .3, 1);
   display: flex; flex-direction: column;
 }
 .drawer.open { transform: none; }
@@ -420,20 +418,32 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .dr-title { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
 .dr-body { flex: 1; overflow-y: auto; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .dr-foot { background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 6px; flex-wrap: wrap; }
-.stepper { display: flex; flex-wrap: wrap; gap: 6px; }
-.step { --c: #7C8794; height: 30px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line-strong); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; }
+.stepper { display: flex; flex-wrap: wrap; gap: 5px; }
+.step { --c: #7C8794; height: 30px; padding: 0 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line-strong); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; }
 .step::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
 .step:hover { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
 .step.cur { background: var(--c); border-color: var(--c); color: #fff; }
 .step.cur::before { background: #fff; }
-.dr-cols { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.dr-cols { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "a b" "a c"; gap: 14px; align-items: start; }
+.dr-a { grid-area: a; } .dr-b { grid-area: b; } .dr-c { grid-area: c; }
+.dr-cols > .card { min-width: 0; }
+@media (min-width: 1280px) { .dr-cols { grid-template-columns: minmax(0, 460px) minmax(0, 0.85fr) minmax(0, 1.15fr); grid-template-rows: auto; grid-template-areas: "a b c"; } }
+.stage-change { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 14px 0 6px; color: var(--ink-3); }
+.stage-change .stage { height: 30px; font-size: 13.5px; padding: 0 12px 0 10px; }
+.stage-change-who { display: block; text-align: center; font-size: 13px; color: var(--ink-2); padding-bottom: 2px; }
 .stage-band { display: flex; align-items: center; gap: 16px; padding: 10px 16px 10px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--c) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 38%, var(--line)); }
 .stage-now { flex-shrink: 0; display: flex; flex-direction: column; padding: 8px 16px; border-radius: 9px; background: color-mix(in srgb, var(--c) 86%, #000); color: #fff; }
 .stage-now span { font-size: 11.5px; font-weight: 500; opacity: .85; }
 .stage-now b { font-size: 17px; font-weight: 700; line-height: 1.25; white-space: nowrap; }
 .stage-band .grow { min-width: 0; }
 .dr-money { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
-.dr-saved { font-size: 12.5px; font-weight: 600; color: var(--ok); opacity: 0; transition: opacity .2s; }
+.dr-saved { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .2s; }
+.dr-saved.ok { color: var(--ok); }
+.dr-saved.ok .val { stroke: var(--ok); }
+.dr-saved.bad .val { stroke: var(--bad); }
+.mini-ring circle { fill: none; stroke-width: 2.5; }
+.mini-ring .trk { stroke: var(--surface-3); }
+.mini-ring .val { stroke: var(--accent); stroke-linecap: round; }
 .dr-saved.on { opacity: 1; }
 .dr-saved.bad { color: var(--bad); }
 .pf { display: flex; flex-direction: column; gap: 8px; }
@@ -500,10 +510,29 @@ button.list-row:hover { background: var(--surface-2); }
 .cmd-item:hover, .cmd-item.selected { background: var(--accent-soft); }
 .cmd-item .cmd-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; color: var(--ink-2); flex-shrink: 0; }
 
+/* ============ Jarayon animatsiyasi ============ */
+.busy { position: fixed; inset: 0; z-index: 550; display: none; place-items: center; padding: 16px; background: color-mix(in srgb, var(--canvas) 50%, transparent); cursor: progress; }
+.busy.on { display: grid; animation: busy-in .12s ease-out; }
+.busy.out { opacity: 0; transition: opacity .16s; }
+@keyframes busy-in { from { opacity: 0; } to { opacity: 1; } }
+.busy-card { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 236px; max-width: 100%; padding: 22px 20px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-3); text-align: center; animation: pop-in .16s ease; }
+.busy-ring { position: relative; width: 76px; height: 76px; margin-bottom: 10px; }
+.busy-ring svg { width: 100%; height: 100%; display: block; }
+.busy-ring circle { fill: none; stroke-width: 6; }
+.busy-ring .trk { stroke: var(--surface-3); }
+.busy-ring .val { stroke: var(--accent); stroke-linecap: round; transition: stroke .15s; }
+.busy-pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.busy-t { font-size: 15px; font-weight: 700; }
+.busy-s { font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.busy.done .val { stroke: var(--ok); }
+.busy.done .busy-pct { color: var(--ok); }
+.busy.fail .val { stroke: var(--bad); }
+.busy.fail .busy-pct { color: var(--bad); }
+
 /* ============ Toast ============ */
 .toasts { position: absolute; left: 20px; bottom: 20px; z-index: 600; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; pointer-events: none; }
 .has-bulk .toasts { bottom: 80px; }
-.has-drawer .toasts { bottom: 76px; }
+.has-drawer .toasts { left: auto; right: 24px; bottom: 76px; align-items: flex-end; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; background: var(--ink); color: var(--surface); border-radius: 10px; font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow-3); max-width: min(420px, calc(100vw - 40px)); animation: toast-in .2s ease; }
 .toast.out { opacity: 0; transform: translateY(6px); transition: all .2s; }
 .toast .t-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
@@ -545,7 +574,8 @@ button.list-row:hover { background: var(--surface-2); }
   .table-wrap { flex: none; overflow: visible; }
   .table-scroll { overflow-x: auto; overflow-y: visible; }
   .kanban { flex: none; height: 70vh; }
-  .dr-cols { grid-template-columns: 1fr; }
+  .dr-cols { grid-template-columns: 1fr; grid-template-rows: auto; grid-template-areas: "a" "b" "c"; }
+  .drawer { inset: 0; border-radius: 0; border: none; }
   .stage-band { flex-wrap: wrap; gap: 10px; }
   .stage-band .grow { flex-basis: 100%; order: 3; }
   .dr-money { margin-left: auto; font-size: 18px; }
@@ -695,7 +725,6 @@ button.list-row:hover { background: var(--surface-2); }
 <div id="bulkbar" class="bulkbar" role="toolbar" aria-label="Tanlangan bitimlar bilan amallar">
   <div class="bb-info"><b id="bbCount">0</b> ta tanlandi <span id="bbSum"></span></div>
   <button class="btn bb-main" data-act="bulk-owner"><i data-ic="userCheck" data-s="16"></i><span class="bb-t">Menejerga o‘tkazish</span></button>
-  <button class="btn" data-act="bulk-stage"><i data-ic="swap" data-s="16"></i><span class="bb-t">Bosqichni almashtirish</span></button>
   <button class="btn" data-act="bulk-task"><i data-ic="calendar" data-s="16"></i><span class="bb-t">Vazifa qo‘shish</span></button>
   <button class="btn" data-act="bulk-export" title="Tanlanganlarni CSV qilib yuklash"><i data-ic="download" data-s="16"></i><span class="bb-t">CSV</span></button>
   <button class="btn bb-del" data-act="bulk-delete" title="Tanlanganlarni o‘chirish"><i data-ic="trash" data-s="16"></i></button>
@@ -954,6 +983,7 @@ button.list-row:hover { background: var(--surface-2); }
   </div>
 </div>
 
+<div id="busy" class="busy" role="status" aria-live="polite"></div>
 <div id="popRoot"></div>
 
 <script>
@@ -992,6 +1022,11 @@ const FUNNELS = ["Sotuv varonkasi","Qayta sotuv","Ulgurji mijozlar"];
 const CITIES = ["Toshkent","Toshkent viloyati","Andijon","Buxoro","Farg'ona","Jizzax","Namangan","Navoiy","Qashqadaryo","Qoraqalpog'iston","Samarqand","Sirdaryo","Surxondaryo","Xorazm"];
 /* Bemorning barcha raqamlari: asosiy + qo'shimcha */
 const extraPhones = c => (Array.isArray((c || {}).phones) ? c.phones : []).filter(p => p && String(p).trim());
+/* Qo‘ng‘iroq uchun mahalliy raqam: +998 99 763 73 83 → 997637383 (telefon "99 763 73 83" ko‘rinishida teradi) */
+function localPhone(p) { const d = digits(p); return d.length === 12 && d.slice(0, 3) === "998" ? d.slice(3) : d; }
+function localPhoneFmt(p) { const d = localPhone(p); return d.length === 9 ? d.slice(0, 2) + " " + d.slice(2, 5) + " " + d.slice(5, 7) + " " + d.slice(7) : String(p || "").trim(); }
+/* Telegram va WhatsApp uchun xalqaro raqam: 99 763 73 83 → 998997637383 */
+function intlPhone(p) { const d = digits(p); return d.length === 9 ? "998" + d : d; }
 const phoneHas = (c, qd) => [(c || {}).phone].concat(extraPhones(c)).some(p => digits(p).includes(qd));
 const SOURCES = ["Instagram","Telegram Ads","Tavsiya","Sayt","Qo'ng'iroq"];
 const PERIODS = [
@@ -1186,9 +1221,70 @@ function playSound(type) {
   } catch (e) {}
 }
 
+/* --- Jarayon animatsiyasi: 1 soniyalik foizli aylana ---
+   Har bir amal (izohdan tashqari) shu oyna orqali bajariladi. Amal darhol boshlanadi, aylana 1 soniyada
+   0% dan 100% gacha to‘ladi; server javobi kechiksa 96% da kutib turadi. Shu vaqtdagi xabarnomalar
+   animatsiya tugagach chiqadi. */
+const Busy = { active: false, depth: 0, tail: Promise.resolve(), pending: [] };
+const BUSY_MS = 1000, RING_R = 30, RING_C = 2 * Math.PI * RING_R;
+const easeOut = t => 1 - Math.pow(1 - t, 2);
+const raf = cb => document.hidden ? setTimeout(() => cb(performance.now()), 40) : requestAnimationFrame(cb);
+function withProgress(label, fn, opt) {
+  const go = () => runProgress(label, fn, opt || {});
+  const p = Busy.depth > 0 ? Busy.tail.then(go, go) : go();
+  Busy.depth++;
+  Busy.tail = p.then(() => { Busy.depth--; }, () => { Busy.depth--; });
+  return p;
+}
+function runProgress(label, fn, opt) {
+  return new Promise(resolve => {
+    const el = $("#busy");
+    Busy.active = true;
+    el.className = "busy on";
+    el.innerHTML = `<div class="busy-card">
+      <div class="busy-ring"><svg viewBox="0 0 76 76" aria-hidden="true"><circle class="trk" cx="38" cy="38" r="${RING_R}"/><circle class="val" cx="38" cy="38" r="${RING_R}" transform="rotate(-90 38 38)" style="stroke-dasharray:${RING_C};stroke-dashoffset:${RING_C}"/></svg><b class="busy-pct">0%</b></div>
+      <div class="busy-t">Bajarilmoqda…</div>
+      <div class="busy-s">${esc(label)}</div>
+    </div>`;
+    const val = el.querySelector(".val"), pct = el.querySelector(".busy-pct");
+    let done = false, value;
+    let r;
+    try { r = fn(); } catch (e) { console.warn(e); }
+    Promise.resolve(r).then(v => { value = v; }, e => { console.warn(e); }).then(() => { done = true; });
+    const t0 = performance.now();
+    const tick = now => {
+      const t = Math.min(1, (now - t0) / BUSY_MS);
+      let p = easeOut(t);
+      if (!done) p = Math.min(p, 0.96);
+      val.style.strokeDashoffset = RING_C * (1 - p);
+      if (t >= 1 && done) {
+        const failed = Busy.pending.some(a => a[1] === "error");
+        el.classList.add(failed ? "fail" : "done");
+        val.style.strokeDashoffset = 0;
+        pct.innerHTML = ic(failed ? "x" : "check", 28, 3);
+        el.querySelector(".busy-t").textContent = failed ? "Bajarilmadi" : (opt.doneText || "Bajarildi");
+        setTimeout(() => {
+          el.classList.add("out");
+          setTimeout(() => {
+            el.className = "busy";
+            Busy.active = false;
+            Busy.pending.splice(0).forEach(a => toast(a[0], a[1], a[2]));
+            resolve(value);
+          }, 160);
+        }, 240);
+        return;
+      }
+      pct.textContent = Math.round(p * 100) + "%";
+      raf(tick);
+    };
+    raf(tick);
+  });
+}
+
 /* --- Xabarnomalar (toast) --- */
 function toast(msg, kind, opt) {
   opt = opt || {};
+  if (Busy.active) { Busy.pending.push([msg, kind, opt]); return; }
   const root = $("#toasts");
   if (!root) return;
   const el = document.createElement("div");
@@ -1210,8 +1306,9 @@ function toast(msg, kind, opt) {
 function confirmBox(o) {
   return new Promise(resolve => {
     $("#confirmTitle").textContent = o.title || "Tasdiqlaysizmi?";
-    $("#confirmText").textContent = o.text || "";
+    if (o.html) $("#confirmText").innerHTML = o.html; else $("#confirmText").textContent = o.text || "";
     const yes = $("#confirmYes"), no = $("#confirmNo"), m = $("#confirmModal");
+    no.textContent = o.cancel || "Bekor qilish";
     yes.textContent = o.ok || "Tasdiqlash";
     yes.className = "btn " + (o.danger === false ? "btn-primary" : "btn-danger");
     const done = v => { m.classList.remove("open"); yes.onclick = no.onclick = null; m._resolve = null; resolve(v); };
@@ -1450,9 +1547,14 @@ const meB = () => `<b>${esc(ME.name)}</b>`;
 const plural = n => n + " ta bitim";
 
 /* ======================= OMMAVIY AMALLAR: BOSQICH VA MENEJER ======================= */
-async function changeStage(ids, stage) {
+function changeStage(ids, stage) {
+  const n = ids.map(findDeal).filter(d => d && d.stage !== stage).length;
+  if (!n) { toast("Tanlangan bitimlar allaqachon shu bosqichda"); return Promise.resolve(); }
+  return withProgress(n === 1 ? `Bosqich: ${stageName(stage)}` : `${plural(n)} “${stageName(stage)}” bosqichiga`, () => applyStage(ids, stage));
+}
+async function applyStage(ids, stage) {
   const deals = ids.map(findDeal).filter(d => d && d.stage !== stage);
-  if (!deals.length) { toast("Tanlangan bitimlar allaqachon shu bosqichda"); return; }
+  if (!deals.length) return;
   const undo = deals.map(d => {
     const u = { d, id: d.id, stage: d.stage, updatedTs: d.updatedTs };
     u.ev = addEvent(d, "stage", `${meB()} bosqichni o‘zgartirdi: ${stagePillHtml(d.stage)} → ${stagePillHtml(stage)}`, { from: d.stage, to: stage });
@@ -1475,17 +1577,24 @@ async function changeStage(ids, stage) {
   }
   const okN = deals.length - failed.length;
   toast(okN === 1 ? `Bosqich: ${stageName(stage)}` : `${plural(okN)} “${stageName(stage)}” bosqichiga o‘tkazildi`, "success", {
-    action: { label: "Bekor qilish", fn: async () => {
+    action: { label: "Bekor qilish", fn: () => withProgress("Bosqich o‘zgarishini bekor qilish", async () => {
       const list = undo.filter(u => !failed.includes(u.d));
       revert(list); refreshAll();
       const f2 = await saveMany(list.map(u => findDeal(u.id) || u.d));
       toast(f2.length ? "Bekor qilishda xato yuz berdi" : "Bosqich o‘zgarishi bekor qilindi", f2.length ? "error" : "info");
-    } }
+    }) }
   });
 }
 
 /* mgrs — bitta yoki bir nechta menejer; bir nechta bo‘lsa bitimlar navbat bilan teng taqsimlanadi. */
-async function changeOwner(ids, mgrs) {
+function changeOwner(ids, mgrs) {
+  const list = (Array.isArray(mgrs) ? mgrs : [mgrs]).filter(Boolean), all = ids.map(findDeal).filter(Boolean);
+  if (!list.length || !all.length) return Promise.resolve();
+  if (list.length === 1 && all.every(d => d.owner === list[0].name && same(d.ownerId, list[0].id))) { toast("Bitimlar allaqachon shu menejerda"); return Promise.resolve(); }
+  const label = list.length === 1 ? `${all.length === 1 ? "Bitim" : plural(all.length)} → ${list[0].name}` : `${plural(all.length)} ${list.length} ta menejerga taqsimlanmoqda`;
+  return withProgress(label, () => applyOwner(ids, list));
+}
+async function applyOwner(ids, mgrs) {
   mgrs = (Array.isArray(mgrs) ? mgrs : [mgrs]).filter(Boolean);
   if (!mgrs.length) return;
   const all = ids.map(findDeal).filter(Boolean);
@@ -1502,7 +1611,7 @@ async function changeOwner(ids, mgrs) {
     d.owner = m.name; d.ownerId = m.id;
     undo.push(u);
   });
-  if (!undo.length) { toast("Bitimlar allaqachon shu menejerda"); return; }
+  if (!undo.length) return;
   const deals = undo.map(u => u.d);
   const revert = list => list.forEach(u => {
     const d = findDeal(u.id) || u.d;
@@ -1522,13 +1631,13 @@ async function changeOwner(ids, mgrs) {
   const okN = deals.length - failed.length;
   const who = mgrs.length === 1 ? mgrs[0].name : mgrs.length + " ta menejer";
   toast(mgrs.length === 1 ? `${plural(okN)} ${who}ga o‘tkazildi` : `${plural(okN)} ${who}ga taqsimlandi`, "success", {
-    action: { label: "Bekor qilish", fn: async () => {
+    action: { label: "Bekor qilish", fn: () => withProgress("O‘tkazishni bekor qilish", async () => {
       const list = undo.filter(u => !failed.includes(u.d));
       list.forEach(u => { if (!findDeal(u.id)) DEALS.unshift(u.d); });
       revert(list); refreshAll();
       const f2 = await saveMany(list.map(u => findDeal(u.id) || u.d));
       toast(f2.length ? "Bekor qilishda xato yuz berdi" : "O‘tkazish bekor qilindi", f2.length ? "error" : "info");
-    } }
+    }) }
   });
 }
 
@@ -1543,7 +1652,7 @@ async function deleteDeals(ids) {
     ok: "O‘chirish"
   });
   if (!ok) return;
-  try {
+  return withProgress(n === 1 ? "Bitimni o‘chirish" : `${plural(n)}ni o‘chirish`, async () => { try {
     await API.remove(ids);
     ids.forEach(id => S.sel.delete(id));
     if (S.drawerId && ids.includes(sid(S.drawerId))) closeDrawer();
@@ -1552,7 +1661,7 @@ async function deleteDeals(ids) {
   } catch (e) {
     console.warn(e);
     toast("O‘chirib bo‘lmadi: " + (e.message || "server xatosi"), "error");
-  }
+  } });
 }
 
 function addTaskToDeals(ids, title, dueTs, ownerName) {
@@ -1824,7 +1933,7 @@ function dealsTableHtml(list) {
             return `<tr data-row="${id}" class="${S.sel.has(sid(d.id)) ? "sel" : ""}">
               <td class="c-check"><input type="checkbox" class="check" data-chk="row" data-id="${id}" ${S.sel.has(sid(d.id)) ? "checked" : ""} aria-label="Bitimni tanlash"></td>
               <td class="c-name" style="max-width:220px;"><div class="t-main ellipsis">${esc(d.name || "Nomsiz bitim")}</div><div class="t-sub ellipsis">${esc(d.product || "Mahsulot ko‘rsatilmagan")}</div></td>
-              <td class="c-stage"><button class="stage" style="--c:${stageHex(d.stage)}" data-act="stage-pop" data-id="${id}" title="Bosqichni almashtirish">${esc(stageName(d.stage))}${ic("chevD", 12, 2.5)}</button></td>
+              <td class="c-stage">${stageBadge(d.stage)}</td>
               <td class="c-client"><div class="t-main ellipsis" style="font-weight:500;max-width:180px;">${esc(cl.name || "Nomsiz mijoz")}</div><div class="t-sub num ellipsis" style="max-width:180px;">${esc(cl.phone || "—")}${cl.city ? `<span class="city-inline">, ${esc(cl.city)}</span>` : ""}</div></td>
               <td class="sub hide-lg">${esc(cl.city || "—")}</td>
               <td class="c-owner"><button class="owner-btn" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button></td>
@@ -1832,7 +1941,7 @@ function dealsTableHtml(list) {
               <td class="c-money">${fmtMoney(d.budget)}</td>
               <td class="sub hide-lg" style="white-space:nowrap;">${esc(fmtDate(d.createdTs))}</td>
               <td class="c-act"><span class="row-acts">
-                ${ph ? `<a class="icon-btn sm" href="tel:+${ph}" title="Qo‘ng‘iroq qilish">${ic("phone", 15)}</a><a class="icon-btn sm" href="https://t.me/+${ph}" target="_blank" rel="noopener" title="Telegramda yozish">${ic("send", 15)}</a>` : ""}
+                ${ph ? `<a class="icon-btn sm" href="tel:${localPhone(ph)}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(ph))}">${ic("phone", 15)}</a><a class="icon-btn sm" href="https://t.me/+${intlPhone(ph)}" target="_blank" rel="noopener" title="Telegramda yozish">${ic("send", 15)}</a>` : ""}
                 <button class="icon-btn sm hide-lg" data-act="quick-task" data-id="${id}" title="Vazifa qo‘shish">${ic("calendar", 15)}</button>
               </span></td>
             </tr>`;
@@ -1870,7 +1979,7 @@ function dealsKanbanHtml(list) {
         <div class="kcol-body" data-stage="${st}">
           ${shown.map(d => {
             const cl = d.client || {}, id = esc(sid(d.id)), on = S.sel.has(sid(d.id));
-            return `<div class="kcard ${on ? "sel" : ""}" draggable="true" data-card="${id}">
+            return `<div class="kcard ${on ? "sel" : ""}" data-card="${id}">
               <input type="checkbox" class="check" data-chk="row" data-id="${id}" ${on ? "checked" : ""} aria-label="Bitimni tanlash">
               <div class="t-main">${esc(d.name || "Nomsiz bitim")}</div>
               <div class="t-sub" style="margin-top:-4px;">${esc(cl.name || "Nomsiz mijoz")}${cl.phone ? `<br><span class="num">${esc(cl.phone)}</span>` : ""}</div>
@@ -1933,11 +2042,6 @@ function toggleSelect(id, on, shift) {
 function clearSelection() { S.sel.clear(); S.lastSel = null; syncSelectionUI(); }
 
 /* --- Popover tarkiblari --- */
-function stagePopHtml(ids) {
-  const cur = ids.length === 1 ? (findDeal(ids[0]) || {}).stage : null;
-  return `<div class="pop-head">${ids.length > 1 ? `${plural(ids.length)}ni qaysi bosqichga o‘tkazamiz?` : "Bosqichni almashtirish"}</div>
-    <div class="pop-body">${STAGES.map(st => `<button class="pop-item ${st === cur ? "cur" : ""}" data-act="set-stage" data-stage="${st}"><i class="sw" style="--c:${stageHex(st)}"></i>${esc(stageName(st))}${st === cur ? `<span class="n">${ic("check", 14, 2.5)}</span>` : ""}</button>`).join("")}</div>`;
-}
 function ownerPopHtml(ids, q) {
   const cur = ids.length === 1 ? (findDeal(ids[0]) || {}).owner : null;
   const mgrs = assignable();
@@ -1999,44 +2103,13 @@ function refreshFilterPop() {
   if (Pop.el && Pop.ctx && Pop.ctx.filter) Pop.set(filterPopHtml(Pop.ctx.filter));
 }
 
-/* --- Kanban: sudrab o'tkazish --- */
-let dragIds = null;
-document.addEventListener("dragstart", e => {
-  const card = e.target.closest && e.target.closest(".kcard");
-  if (!card) return;
-  const id = card.dataset.card;
-  dragIds = S.sel.has(id) && S.sel.size > 1 ? selectedIds() : [id];
-  card.classList.add("dragging");
-  e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setData("text/plain", id);
-});
-document.addEventListener("dragend", e => {
-  const card = e.target.closest && e.target.closest(".kcard");
-  if (card) card.classList.remove("dragging");
-  $$(".kcol.over").forEach(c => c.classList.remove("over"));
-  dragIds = null;
-});
-document.addEventListener("dragover", e => {
-  const col = e.target.closest && e.target.closest(".kcol");
-  if (!col || !dragIds) return;
-  e.preventDefault();
-  $$(".kcol.over").forEach(c => { if (c !== col) c.classList.remove("over"); });
-  col.classList.add("over");
-});
-document.addEventListener("drop", e => {
-  const col = e.target.closest && e.target.closest(".kcol");
-  if (!col || !dragIds) return;
-  e.preventDefault();
-  col.classList.remove("over");
-  const ids = dragIds;
-  dragIds = null;
-  changeStage(ids, col.dataset.stage);
-});
-
 /* ======================= CSV EKSPORT ======================= */
 function exportCSV(deals, label) {
   deals = deals || DEALS;
   if (!deals.length) { toast("Eksport qilish uchun bitim yo‘q", "warn"); return; }
+  return withProgress(`${plural(deals.length)}ni CSV faylga yuklash`, () => buildCSV(deals, label));
+}
+function buildCSV(deals, label) {
   const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
   const headers = ["ID", "Nomi", "Mas’ul", "Bosqich", "Varonka", "Summa (UZS)", "Mijoz", "Telefon", "Shahar", "Manzil", "Manba", "Mahsulot", "Soni", "Yaratilgan", "Keyingi vazifa"];
   const rows = deals.map(d => {
@@ -2086,9 +2159,9 @@ function timelineHtml(d) {
 function contactHtml(phone) {
   const ph = digits(phone);
   if (ph.length < 7) return "";
-  return `<a class="icon-btn sm" href="tel:+${ph}" title="Qo‘ng‘iroq qilish">${ic("phone", 15)}</a>
-    <a class="icon-btn sm" href="https://t.me/+${ph}" target="_blank" rel="noopener" title="Telegram">${ic("send", 15)}</a>
-    <a class="icon-btn sm" href="https://wa.me/${ph}" target="_blank" rel="noopener" title="WhatsApp">${ic("wa", 15)}</a>
+  return `<a class="icon-btn sm" href="tel:${localPhone(ph)}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(ph))}">${ic("phone", 15)}</a>
+    <a class="icon-btn sm" href="https://t.me/+${intlPhone(ph)}" target="_blank" rel="noopener" title="Telegram">${ic("send", 15)}</a>
+    <a class="icon-btn sm" href="https://wa.me/${intlPhone(ph)}" target="_blank" rel="noopener" title="WhatsApp">${ic("wa", 15)}</a>
     <button class="icon-btn sm" data-act="copy" data-text="${esc(phone)}" title="Raqamni nusxalash">${ic("copy", 14)}</button>`;
 }
 const subLine = d => esc(d.product || "Mahsulot ko‘rsatilmagan") + ((d.qty || 1) > 1 ? `, ${d.qty} dona` : "");
@@ -2142,11 +2215,11 @@ function renderDrawer(fresh) {
 
     <div class="dr-body">
       <div class="dr-cols">
-        <div class="card card-pad pf">
+        <div class="card card-pad pf dr-a">
           <h3 class="card-title">Bemor ma’lumotlari</h3>
           ${row("F.I.Sh.", inp("cname", c.name, "Bemor ismi", 'placeholder="Ism va familiya"'))}
           ${row("Asosiy telefon", inp("phone", c.phone, "Asosiy telefon", 'inputmode="tel" placeholder="+998 90 123-45-67"') + `<span class="pf-acts" id="drContact">${contactHtml(c.phone)}</span>`, "with-acts")}
-          ${phones.map((p, i) => row("Qo‘shimcha raqam", inp("phone2", p, "Qo‘shimcha raqam", `data-i="${i}" inputmode="tel" placeholder="+998"`) + `<span class="pf-acts">${digits(p).length >= 7 ? `<a class="icon-btn sm" href="tel:+${digits(p)}" title="Qo‘ng‘iroq qilish">${ic("phone", 15)}</a>` : ""}<button class="icon-btn sm" data-act="ph-del" data-i="${i}" title="Raqamni olib tashlash">${ic("x", 15)}</button></span>`, "with-acts")).join("")}
+          ${phones.map((p, i) => row("Qo‘shimcha raqam", inp("phone2", p, "Qo‘shimcha raqam", `data-i="${i}" inputmode="tel" placeholder="+998"`) + `<span class="pf-acts">${digits(p).length >= 7 ? `<a class="icon-btn sm" href="tel:${localPhone(digits(p))}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(digits(p)))}">${ic("phone", 15)}</a>` : ""}<button class="icon-btn sm" data-act="ph-del" data-i="${i}" title="Raqamni olib tashlash">${ic("x", 15)}</button></span>`, "with-acts")).join("")}
           ${row("", `<button class="link-btn" data-act="ph-add" style="margin-left:-6px;">${ic("plus", 13, 2.5)} Qo‘shimcha raqam qo‘shish</button>`, "tight")}
           ${row("Viloyat", sel("city", CITIES, c.city, "Viloyat"))}
           ${row("Manzil", `<textarea class="field" data-f="addr" rows="2" aria-label="Manzil" placeholder="Tuman, ko‘cha, uy — qo‘lda yoziladi">${esc(c.addr || "")}</textarea>`, "top")}
@@ -2162,8 +2235,7 @@ function renderDrawer(fresh) {
           <div class="muted" style="font-size:12.5px;margin-top:14px;">Yaratilgan: ${esc(fmtWhen(d.createdTs))}. Oxirgi o‘zgarish: ${esc(fmtWhen(d.updatedTs))}.</div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
-          <div class="card card-pad">
+          <div class="card card-pad dr-b">
             <div class="row between" style="margin-bottom:6px;">
               <h3 class="card-title">Vazifalar</h3>
               <button class="btn btn-soft btn-sm" data-act="quick-task" data-id="${id}">${ic("plus", 14)}Vazifa</button>
@@ -2179,7 +2251,7 @@ function renderDrawer(fresh) {
             }).join("") : `<p class="muted" style="padding:6px 0;">${isOpenDeal(d) ? "Keyingi qadam belgilanmagan. Vazifa qo‘shing — bemor unutilib qolmaydi." : "Vazifalar yo‘q."}</p>`}
           </div>
 
-          <div class="card card-pad">
+          <div class="card card-pad dr-c">
             <h3 class="card-title" style="margin-bottom:12px;">Tarix va izohlar</h3>
             <textarea id="newCommentText" class="field" rows="3" placeholder="Bemor bilan nima kelishildi? Izoh yozing…">${esc(draft)}</textarea>
             <div class="row between wrap" style="margin:8px 0 6px;">
@@ -2192,7 +2264,6 @@ function renderDrawer(fresh) {
             </div>
             <div class="timeline" id="drTimeline">${timelineHtml(d)}</div>
           </div>
-        </div>
       </div>
     </div>
 
@@ -2208,6 +2279,23 @@ function renderDrawer(fresh) {
     const n = $(keep.sel, el);
     if (n) { if (keep.value != null && n.tagName !== "BUTTON") n.value = keep.value; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} }
   }
+}
+
+/* --- Bosqich faqat varaqada va tasdiqlash bilan o‘zgaradi --- */
+function askStageChange(d, to) {
+  const c = d.client || {};
+  return confirmBox({
+    title: "Bosqich o‘zgarsinmi?",
+    html: `<span class="stage-change">${stageBadge(d.stage)}${ic("chevR", 16, 2.5)}${stageBadge(to)}</span><span class="stage-change-who">${esc(c.name || d.name || "Nomsiz bemor")}</span>`,
+    ok: "Ha, o‘zgartirish",
+    cancel: "Yo‘q",
+    danger: false
+  });
+}
+async function confirmStage(id, stage) {
+  const d = findDeal(id);
+  if (!d || d.stage === stage) return;
+  if (await askStageChange(d, stage)) changeStage([id], stage);
 }
 
 /* --- Varaqadagi maydonni joyida saqlash --- */
@@ -2228,25 +2316,44 @@ function drawerPatch(d) {
   set("#drContact", contactHtml(c.phone));
   set("#drTimeline", timelineHtml(d));
 }
-let savedTimer = 0;
-function flashSaved(text, bad) {
-  const n = $("#drSaved");
-  if (!n) return;
-  n.textContent = text; n.classList.toggle("bad", !!bad); n.classList.add("on");
+/* Varaqadagi maydon saqlanishi: sarlavhada kichik foizli aylana (yozishni to‘xtatmaydi) */
+let inlineRun = 0, savedTimer = 0;
+function inlineProgress(p) {
+  const id = ++inlineRun, t0 = performance.now(), C = 2 * Math.PI * 7;
+  let done = false, ok = true;
+  p.then(v => { ok = v !== false; done = true; });
   clearTimeout(savedTimer);
-  savedTimer = setTimeout(() => n.classList.remove("on"), 1800);
+  const draw = (v, text, cls) => {
+    const n = $("#drSaved");
+    if (!n) return;
+    n.className = "dr-saved on " + (cls || "");
+    n.innerHTML = `<svg class="mini-ring" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle class="trk" cx="9" cy="9" r="7"/><circle class="val" cx="9" cy="9" r="7" transform="rotate(-90 9 9)" style="stroke-dasharray:${C};stroke-dashoffset:${C * (1 - v)}"/></svg><span>${text}</span>`;
+  };
+  const tick = now => {
+    if (id !== inlineRun) return;
+    const t = Math.min(1, (now - t0) / BUSY_MS);
+    let v = easeOut(t);
+    if (!done) v = Math.min(v, 0.96);
+    if (t >= 1 && done) {
+      draw(1, ok ? "Saqlandi" : "Saqlanmadi", ok ? "ok" : "bad");
+      savedTimer = setTimeout(() => { const n = $("#drSaved"); if (n && id === inlineRun) n.classList.remove("on"); }, 1500);
+      return;
+    }
+    draw(v, `Saqlanmoqda ${Math.round(v * 100)}%`);
+    raf(tick);
+  };
+  raf(tick);
 }
 async function persistCard(d, snap, label) {
   logField(d, label);
   drawerPatch(d);
   RENDER[S.view]();
   updateBadges();
-  flashSaved("Saqlanmoqda…");
-  let ok = true;
-  try { await API.save(d); } catch (e) { console.warn(e); ok = false; toast("Saqlab bo‘lmadi: " + (e.message || "server xatosi"), "error"); }
-  if (!ok) { Object.assign(d, JSON.parse(snap)); refreshAll(); if (same(S.drawerId, d.id)) renderDrawer(true); return false; }
-  if (same(S.drawerId, d.id)) flashSaved("Saqlandi");
-  return true;
+  const p = Promise.resolve().then(() => API.save(d)).then(() => true, e => { console.warn(e); toast("Saqlab bo‘lmadi: " + (e.message || "server xatosi"), "error"); return false; });
+  inlineProgress(p);
+  const ok = await p;
+  if (!ok) { Object.assign(d, JSON.parse(snap)); refreshAll(); if (same(S.drawerId, d.id)) renderDrawer(true); }
+  return ok;
 }
 const cardSnap = d => JSON.stringify({ name: d.name, product: d.product, qty: d.qty, budget: d.budget, order: d.order, funnel: d.funnel, client: d.client, events: d.events, updatedTs: d.updatedTs });
 function saveField(el) {
@@ -2264,7 +2371,10 @@ function saveField(el) {
   if (changed) persistCard(d, snap, FIELD_L[f] || f);
 }
 
-async function toggleTask(did, tid, done) {
+function toggleTask(did, tid, done) {
+  return withProgress(done ? "Vazifani bajarildi deb belgilash" : "Vazifani qayta ochish", () => applyToggleTask(did, tid, done));
+}
+async function applyToggleTask(did, tid, done) {
   const d = findDeal(did);
   if (!d) return;
   const t = (d.tasks || []).find(x => sid(x.id) === sid(tid));
@@ -2436,7 +2546,7 @@ function renderClients() {
             <td class="c-money" style="${x.won ? "color:var(--ok);" : "color:var(--ink-3);font-weight:500;"}">${x.won ? fmtMoney(x.won) : "—"}</td>
             <td class="c-money hide-md" style="font-weight:500;">${fmtMoney(x.total)}</td>
             <td class="sub hide-md">${esc(fmtDate(x.last))}</td>
-            <td class="c-act"><span class="row-acts">${ph ? `<a class="icon-btn sm" href="tel:+${ph}" title="Qo‘ng‘iroq qilish">${ic("phone", 15)}</a><a class="icon-btn sm" href="https://t.me/+${ph}" target="_blank" rel="noopener" title="Telegramda yozish">${ic("send", 15)}</a>` : ""}</span></td>
+            <td class="c-act"><span class="row-acts">${ph ? `<a class="icon-btn sm" href="tel:${localPhone(ph)}" title="Qo‘ng‘iroq qilish: ${esc(localPhoneFmt(ph))}">${ic("phone", 15)}</a><a class="icon-btn sm" href="https://t.me/+${intlPhone(ph)}" target="_blank" rel="noopener" title="Telegramda yozish">${ic("send", 15)}</a>` : ""}</span></td>
           </tr>`; }).join("")}</tbody>
       </table>
       ${list.length > shown.length ? `<div class="tbl-foot"><span>Birinchi ${shown.length} ta mijoz ko‘rsatildi. Qolganlarini qidiruv orqali toping.</span></div>` : ""}
@@ -2616,7 +2726,7 @@ async function saveDealModal() {
   const clientPatch = { name: cName, phone, city: $("#f_client_city").value, addr: v("f_client_addr"), source: $("#f_deal_source").value };
   const btn = $("#saveDealModalBtn");
   btn.disabled = true;
-  try {
+  return withProgress(editingDealId != null ? "Bitimni saqlash" : "Yangi bitim yaratish", async () => { try {
     if (editingDealId != null) {
       const d = findDeal(editingDealId);
       if (!d) return;
@@ -2650,7 +2760,7 @@ async function saveDealModal() {
   } finally {
     btn.disabled = false;
     refreshAll();
-  }
+  } });
 }
 
 /* --- Qo'ng'iroqni qayd etish --- */
@@ -2683,7 +2793,9 @@ async function saveCall() {
   if (!d) return;
   const outcome = $("#callOutcome").value, dur = Number($("#callDuration").value) || 0, notes = $("#callNotes").value.trim();
   const stage = $("#callStage").value, next = $("#callNext").value;
-  const snap = { stage: d.stage, events: d.events.slice(), tasks: d.tasks.slice(), updatedTs: d.updatedTs };
+  if (stage && stage !== d.stage && !(await askStageChange(d, stage))) return;
+  return withProgress("Qo‘ng‘iroqni qayd etish", async () => {
+  const snap = { stage: d.stage, events: (d.events || []).slice(), tasks: (d.tasks || []).slice(), updatedTs: d.updatedTs };
   addEvent(d, "call", `${meB()} qo‘ng‘iroq qildi (${dur} daqiqa): <span class="badge" style="background:var(--success-bg);color:var(--success);font-weight:700;">${esc(outcome)}</span>${notes ? `<br><i style="color:var(--text-sub);">${esc(notes)}</i>` : ""}`);
   if (stage && stage !== d.stage) {
     addEvent(d, "stage", `${meB()} bosqichni o‘zgartirdi: ${stagePillHtml(d.stage)} → ${stagePillHtml(stage)}`, { from: d.stage, to: stage });
@@ -2695,6 +2807,7 @@ async function saveCall() {
   playSound("success");
   if (!(await saveOne(d))) { Object.assign(d, snap); refreshAll(); return; }
   toast("Qo‘ng‘iroq qayd etildi" + (next ? ", qayta aloqa vazifasi qo‘shildi" : ""), "success");
+  });
 }
 
 /* --- Xabar shablonlari --- */
@@ -2715,8 +2828,8 @@ function fillSms() {
 }
 function syncSmsLinks() {
   const deal = findDeal(smsDealId), ph = deal ? digits((deal.client || {}).phone) : "", txt = encodeURIComponent($("#smsText").value);
-  $("#openTgBtn").href = ph ? `https://t.me/+${ph}` : "#";
-  $("#openWaBtn").href = ph ? `https://wa.me/${ph}?text=${txt}` : "#";
+  $("#openTgBtn").href = ph ? `https://t.me/+${intlPhone(ph)}` : "#";
+  $("#openWaBtn").href = ph ? `https://wa.me/${intlPhone(ph)}?text=${txt}` : "#";
 }
 function openSmsModal(deal) {
   smsDealId = deal.id;
@@ -2804,13 +2917,16 @@ function openTaskModal(ids) {
 async function saveTaskModal() {
   const title = $("#taskTitle").value.trim() || "Qayta qo‘ng‘iroq qilish", due = new Date($("#taskDue").value).getTime();
   if (isNaN(due)) { toast("Muddatni tanlang", "warn"); return; }
-  const deals = addTaskToDeals(taskIds, title, due, $("#taskOwner").value);
+  const owner = $("#taskOwner").value, ids = taskIds.slice();
+  return withProgress(ids.length === 1 ? "Vazifa qo‘shish" : `${plural(ids.length)}ga vazifa qo‘shish`, async () => {
+  const deals = addTaskToDeals(ids, title, due, owner);
   closeModals();
   refreshAll();
   playSound("click");
   const failed = await saveMany(deals);
   if (failed.length) toast(`${failed.length} ta bitimga vazifa saqlanmadi`, "error");
   else toast(deals.length === 1 ? "Vazifa qo‘shildi" : `${plural(deals.length)}ga vazifa qo‘shildi`, "success");
+  });
 }
 
 /* --- Bir nechta menejerga taqsimlash --- */
@@ -3041,10 +3157,13 @@ const ACT = {
   "save-view-go": () => {
     const name = ($("#viewNameInput").value || "").trim();
     if (!name) { $("#viewNameInput").focus(); return; }
-    S.views.push({ id: "v_" + newId(), name, f: JSON.parse(JSON.stringify(S.f)) });
-    LS.set("dcrm_views", S.views);
-    Pop.close(); renderDeals();
-    toast(`“${name}” ko‘rinishi saqlandi`, "success");
+    Pop.close();
+    withProgress(`“${name}” ko‘rinishini saqlash`, () => {
+      S.views.push({ id: "v_" + newId(), name, f: JSON.parse(JSON.stringify(S.f)) });
+      LS.set("dcrm_views", S.views);
+      renderDeals();
+      toast(`“${name}” ko‘rinishi saqlandi`, "success");
+    });
   },
   "fpop": el => {
     const k = el.dataset.k;
@@ -3078,16 +3197,13 @@ const ACT = {
   "clear-filters": () => { setFilters({}); Pop.close(); renderDeals(); },
   "rail": el => ACT.ftoggle({ dataset: { k: "stages", v: el.dataset.stage } }),
   "open-deal": el => openDrawer(el.dataset.id),
-  "stage-pop": el => { const ids = [el.dataset.id]; Pop.open(el, stagePopHtml(ids), { ids }, { key: "st-" + el.dataset.id, width: 240 }); },
   "owner-pop": el => { const ids = [el.dataset.id]; Pop.open(el, ownerPopHtml(ids), { ids }, { key: "ow-" + el.dataset.id, width: 300 }); },
-  "set-stage": el => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); changeStage(ids, el.dataset.stage); },
   "set-owner": el => {
     const ids = (Pop.ctx && Pop.ctx.ids) || [], m = managerList().find(x => sid(x.id) === el.dataset.mid);
     Pop.close();
     if (m) changeOwner(ids, m);
   },
   "distribute": () => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); openAssignModal(ids); },
-  "bulk-stage": el => { const ids = selectedIds(); Pop.open(el, stagePopHtml(ids), { ids }, { key: "bulk-stage", width: 260 }); },
   "bulk-owner": el => { const ids = selectedIds(); Pop.open(el, ownerPopHtml(ids), { ids }, { key: "bulk-owner", width: 320 }); },
   "bulk-task": () => openTaskModal(selectedIds()),
   "bulk-export": () => exportCSV(selectedIds().map(findDeal).filter(Boolean), "tanlanganlar"),
@@ -3106,7 +3222,7 @@ const ACT = {
     const i = S.cur.findIndex(x => same(x.id, S.drawerId)), n = S.cur[i + Number(el.dataset.d)];
     if (i > -1 && n) { S.drawerId = sid(n.id); renderDrawer(true); }
   },
-  "dr-stage": el => { if (S.drawerId) changeStage([S.drawerId], el.dataset.stage); },
+  "dr-stage": el => { if (S.drawerId) confirmStage(S.drawerId, el.dataset.stage); },
   "dr-edit": () => { const d = findDeal(S.drawerId); if (d) openDealModal(d); },
   "dr-delete": () => { if (S.drawerId) deleteDeals([S.drawerId]); },
   "dr-call": () => { const d = findDeal(S.drawerId); if (d) openCallModal(d); },
@@ -3135,7 +3251,8 @@ const ACT = {
   "goal-save": () => {
     const v = Number($("#goalInput").value);
     if (!(v > 0)) { $("#goalInput").focus(); return; }
-    LS.setRaw("dcrm_goal", String(v)); Pop.close(); refreshAll(); toast("Oylik reja yangilandi", "success");
+    Pop.close();
+    withProgress("Oylik rejani saqlash", () => { LS.setRaw("dcrm_goal", String(v)); refreshAll(); toast("Oylik reja yangilandi", "success"); });
   },
   "notif-pop": el => {
     const items = allTasks().filter(x => x.st === "overdue" || x.st === "today").sort((a, b) => a.ts - b.ts).slice(0, 12);
@@ -3156,6 +3273,8 @@ document.addEventListener("mousedown", e => {
 document.addEventListener("click", e => {
   const t = e.target;
   if (!(t instanceof Element)) return;
+  const tel = t.closest('a[href^="tel:"]');
+  if (tel) { withProgress("Qo‘ng‘iroq: " + localPhoneFmt(tel.getAttribute("href").slice(4)), () => {}, { doneText: "Raqam terildi" }); return; }
   const chk = t.closest("input[data-chk='row']");
   if (chk) { toggleSelect(chk.dataset.id, chk.checked, e.shiftKey); return; }
   if (t.id === "chkAll") {
@@ -3221,6 +3340,9 @@ document.addEventListener("change", e => {
   else if (t.id === "smsTemplateSelect") fillSms();
 });
 
+document.addEventListener("keydown", e => {
+  if (Busy.active) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
 document.addEventListener("keydown", e => {
   const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
   const typing = ["input", "textarea", "select"].includes(tag);
