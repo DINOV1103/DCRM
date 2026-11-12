@@ -338,13 +338,11 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 /* Kanban */
 .kanban { flex: 1; min-height: 0; display: flex; gap: 10px; overflow-x: auto; align-items: stretch; padding-bottom: 6px; }
 .kcol { --c: #7C8794; width: 272px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--surface-3); border-radius: var(--r-md); border: 1px solid transparent; min-height: 0; }
-.kcol.over { border-color: var(--accent); background: var(--accent-soft); }
 .kcol-head { padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: inset 0 3px 0 var(--c); border-radius: var(--r-md) var(--r-md) 0 0; }
 .kcol-body { flex: 1; min-height: 60px; overflow-y: auto; padding: 4px 8px 8px; display: flex; flex-direction: column; gap: 8px; }
-.kcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; cursor: grab; position: relative; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-1); }
+.kcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; cursor: pointer; position: relative; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-1); }
 .kcard:hover { border-color: var(--line-strong); }
 .kcard.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-.kcard.dragging { opacity: .35; }
 .kcard .check { position: absolute; top: 10px; right: 10px; opacity: 0; }
 .kcard:hover .check, .kcard.sel .check, .has-sel .kcard .check { opacity: 1; }
 .kcard .t-main { padding-right: 22px; }
@@ -410,9 +408,9 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .drawer-scrim { position: fixed; inset: 0; z-index: 70; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .18s; }
 .drawer-scrim.open { opacity: 1; pointer-events: auto; }
 .drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 80; width: min(1120px, 100vw);
-  background: var(--canvas); border-left: 1px solid var(--line); box-shadow: var(--shadow-3);
-  transform: translateX(102%); transition: transform .22s cubic-bezier(.3, .9, .3, 1);
+  position: fixed; top: 10px; right: 10px; bottom: 10px; left: 64px; z-index: 80;
+  background: var(--canvas); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-3);
+  transform: translateX(calc(100% + 80px)); transition: transform .24s cubic-bezier(.3, .9, .3, 1);
   display: flex; flex-direction: column;
 }
 .drawer.open { transform: none; }
@@ -420,13 +418,19 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .dr-title { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
 .dr-body { flex: 1; overflow-y: auto; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 .dr-foot { background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 6px; flex-wrap: wrap; }
-.stepper { display: flex; flex-wrap: wrap; gap: 6px; }
-.step { --c: #7C8794; height: 30px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line-strong); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; }
+.stepper { display: flex; flex-wrap: wrap; gap: 5px; }
+.step { --c: #7C8794; height: 30px; padding: 0 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); border: 1px solid var(--line-strong); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; }
 .step::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
 .step:hover { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
 .step.cur { background: var(--c); border-color: var(--c); color: #fff; }
 .step.cur::before { background: #fff; }
-.dr-cols { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.dr-cols { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "a b" "a c"; gap: 14px; align-items: start; }
+.dr-a { grid-area: a; } .dr-b { grid-area: b; } .dr-c { grid-area: c; }
+.dr-cols > .card { min-width: 0; }
+@media (min-width: 1280px) { .dr-cols { grid-template-columns: minmax(0, 460px) minmax(0, 0.85fr) minmax(0, 1.15fr); grid-template-rows: auto; grid-template-areas: "a b c"; } }
+.stage-change { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 14px 0 6px; color: var(--ink-3); }
+.stage-change .stage { height: 30px; font-size: 13.5px; padding: 0 12px 0 10px; }
+.stage-change-who { display: block; text-align: center; font-size: 13px; color: var(--ink-2); padding-bottom: 2px; }
 .stage-band { display: flex; align-items: center; gap: 16px; padding: 10px 16px 10px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--c) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 38%, var(--line)); }
 .stage-now { flex-shrink: 0; display: flex; flex-direction: column; padding: 8px 16px; border-radius: 9px; background: color-mix(in srgb, var(--c) 86%, #000); color: #fff; }
 .stage-now span { font-size: 11.5px; font-weight: 500; opacity: .85; }
@@ -528,7 +532,7 @@ button.list-row:hover { background: var(--surface-2); }
 /* ============ Toast ============ */
 .toasts { position: absolute; left: 20px; bottom: 20px; z-index: 600; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; pointer-events: none; }
 .has-bulk .toasts { bottom: 80px; }
-.has-drawer .toasts { bottom: 76px; }
+.has-drawer .toasts { left: auto; right: 24px; bottom: 76px; align-items: flex-end; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; background: var(--ink); color: var(--surface); border-radius: 10px; font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow-3); max-width: min(420px, calc(100vw - 40px)); animation: toast-in .2s ease; }
 .toast.out { opacity: 0; transform: translateY(6px); transition: all .2s; }
 .toast .t-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
@@ -570,7 +574,8 @@ button.list-row:hover { background: var(--surface-2); }
   .table-wrap { flex: none; overflow: visible; }
   .table-scroll { overflow-x: auto; overflow-y: visible; }
   .kanban { flex: none; height: 70vh; }
-  .dr-cols { grid-template-columns: 1fr; }
+  .dr-cols { grid-template-columns: 1fr; grid-template-rows: auto; grid-template-areas: "a" "b" "c"; }
+  .drawer { inset: 0; border-radius: 0; border: none; }
   .stage-band { flex-wrap: wrap; gap: 10px; }
   .stage-band .grow { flex-basis: 100%; order: 3; }
   .dr-money { margin-left: auto; font-size: 18px; }
@@ -720,7 +725,6 @@ button.list-row:hover { background: var(--surface-2); }
 <div id="bulkbar" class="bulkbar" role="toolbar" aria-label="Tanlangan bitimlar bilan amallar">
   <div class="bb-info"><b id="bbCount">0</b> ta tanlandi <span id="bbSum"></span></div>
   <button class="btn bb-main" data-act="bulk-owner"><i data-ic="userCheck" data-s="16"></i><span class="bb-t">Menejerga o‘tkazish</span></button>
-  <button class="btn" data-act="bulk-stage"><i data-ic="swap" data-s="16"></i><span class="bb-t">Bosqichni almashtirish</span></button>
   <button class="btn" data-act="bulk-task"><i data-ic="calendar" data-s="16"></i><span class="bb-t">Vazifa qo‘shish</span></button>
   <button class="btn" data-act="bulk-export" title="Tanlanganlarni CSV qilib yuklash"><i data-ic="download" data-s="16"></i><span class="bb-t">CSV</span></button>
   <button class="btn bb-del" data-act="bulk-delete" title="Tanlanganlarni o‘chirish"><i data-ic="trash" data-s="16"></i></button>
@@ -1302,8 +1306,9 @@ function toast(msg, kind, opt) {
 function confirmBox(o) {
   return new Promise(resolve => {
     $("#confirmTitle").textContent = o.title || "Tasdiqlaysizmi?";
-    $("#confirmText").textContent = o.text || "";
+    if (o.html) $("#confirmText").innerHTML = o.html; else $("#confirmText").textContent = o.text || "";
     const yes = $("#confirmYes"), no = $("#confirmNo"), m = $("#confirmModal");
+    no.textContent = o.cancel || "Bekor qilish";
     yes.textContent = o.ok || "Tasdiqlash";
     yes.className = "btn " + (o.danger === false ? "btn-primary" : "btn-danger");
     const done = v => { m.classList.remove("open"); yes.onclick = no.onclick = null; m._resolve = null; resolve(v); };
@@ -1928,7 +1933,7 @@ function dealsTableHtml(list) {
             return `<tr data-row="${id}" class="${S.sel.has(sid(d.id)) ? "sel" : ""}">
               <td class="c-check"><input type="checkbox" class="check" data-chk="row" data-id="${id}" ${S.sel.has(sid(d.id)) ? "checked" : ""} aria-label="Bitimni tanlash"></td>
               <td class="c-name" style="max-width:220px;"><div class="t-main ellipsis">${esc(d.name || "Nomsiz bitim")}</div><div class="t-sub ellipsis">${esc(d.product || "Mahsulot ko‘rsatilmagan")}</div></td>
-              <td class="c-stage"><button class="stage" style="--c:${stageHex(d.stage)}" data-act="stage-pop" data-id="${id}" title="Bosqichni almashtirish">${esc(stageName(d.stage))}${ic("chevD", 12, 2.5)}</button></td>
+              <td class="c-stage">${stageBadge(d.stage)}</td>
               <td class="c-client"><div class="t-main ellipsis" style="font-weight:500;max-width:180px;">${esc(cl.name || "Nomsiz mijoz")}</div><div class="t-sub num ellipsis" style="max-width:180px;">${esc(cl.phone || "—")}${cl.city ? `<span class="city-inline">, ${esc(cl.city)}</span>` : ""}</div></td>
               <td class="sub hide-lg">${esc(cl.city || "—")}</td>
               <td class="c-owner"><button class="owner-btn" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button></td>
@@ -1974,7 +1979,7 @@ function dealsKanbanHtml(list) {
         <div class="kcol-body" data-stage="${st}">
           ${shown.map(d => {
             const cl = d.client || {}, id = esc(sid(d.id)), on = S.sel.has(sid(d.id));
-            return `<div class="kcard ${on ? "sel" : ""}" draggable="true" data-card="${id}">
+            return `<div class="kcard ${on ? "sel" : ""}" data-card="${id}">
               <input type="checkbox" class="check" data-chk="row" data-id="${id}" ${on ? "checked" : ""} aria-label="Bitimni tanlash">
               <div class="t-main">${esc(d.name || "Nomsiz bitim")}</div>
               <div class="t-sub" style="margin-top:-4px;">${esc(cl.name || "Nomsiz mijoz")}${cl.phone ? `<br><span class="num">${esc(cl.phone)}</span>` : ""}</div>
@@ -2037,11 +2042,6 @@ function toggleSelect(id, on, shift) {
 function clearSelection() { S.sel.clear(); S.lastSel = null; syncSelectionUI(); }
 
 /* --- Popover tarkiblari --- */
-function stagePopHtml(ids) {
-  const cur = ids.length === 1 ? (findDeal(ids[0]) || {}).stage : null;
-  return `<div class="pop-head">${ids.length > 1 ? `${plural(ids.length)}ni qaysi bosqichga o‘tkazamiz?` : "Bosqichni almashtirish"}</div>
-    <div class="pop-body">${STAGES.map(st => `<button class="pop-item ${st === cur ? "cur" : ""}" data-act="set-stage" data-stage="${st}"><i class="sw" style="--c:${stageHex(st)}"></i>${esc(stageName(st))}${st === cur ? `<span class="n">${ic("check", 14, 2.5)}</span>` : ""}</button>`).join("")}</div>`;
-}
 function ownerPopHtml(ids, q) {
   const cur = ids.length === 1 ? (findDeal(ids[0]) || {}).owner : null;
   const mgrs = assignable();
@@ -2102,40 +2102,6 @@ function filterPopHtml(k) {
 function refreshFilterPop() {
   if (Pop.el && Pop.ctx && Pop.ctx.filter) Pop.set(filterPopHtml(Pop.ctx.filter));
 }
-
-/* --- Kanban: sudrab o'tkazish --- */
-let dragIds = null;
-document.addEventListener("dragstart", e => {
-  const card = e.target.closest && e.target.closest(".kcard");
-  if (!card) return;
-  const id = card.dataset.card;
-  dragIds = S.sel.has(id) && S.sel.size > 1 ? selectedIds() : [id];
-  card.classList.add("dragging");
-  e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setData("text/plain", id);
-});
-document.addEventListener("dragend", e => {
-  const card = e.target.closest && e.target.closest(".kcard");
-  if (card) card.classList.remove("dragging");
-  $$(".kcol.over").forEach(c => c.classList.remove("over"));
-  dragIds = null;
-});
-document.addEventListener("dragover", e => {
-  const col = e.target.closest && e.target.closest(".kcol");
-  if (!col || !dragIds) return;
-  e.preventDefault();
-  $$(".kcol.over").forEach(c => { if (c !== col) c.classList.remove("over"); });
-  col.classList.add("over");
-});
-document.addEventListener("drop", e => {
-  const col = e.target.closest && e.target.closest(".kcol");
-  if (!col || !dragIds) return;
-  e.preventDefault();
-  col.classList.remove("over");
-  const ids = dragIds;
-  dragIds = null;
-  changeStage(ids, col.dataset.stage);
-});
 
 /* ======================= CSV EKSPORT ======================= */
 function exportCSV(deals, label) {
@@ -2249,7 +2215,7 @@ function renderDrawer(fresh) {
 
     <div class="dr-body">
       <div class="dr-cols">
-        <div class="card card-pad pf">
+        <div class="card card-pad pf dr-a">
           <h3 class="card-title">Bemor ma’lumotlari</h3>
           ${row("F.I.Sh.", inp("cname", c.name, "Bemor ismi", 'placeholder="Ism va familiya"'))}
           ${row("Asosiy telefon", inp("phone", c.phone, "Asosiy telefon", 'inputmode="tel" placeholder="+998 90 123-45-67"') + `<span class="pf-acts" id="drContact">${contactHtml(c.phone)}</span>`, "with-acts")}
@@ -2269,8 +2235,7 @@ function renderDrawer(fresh) {
           <div class="muted" style="font-size:12.5px;margin-top:14px;">Yaratilgan: ${esc(fmtWhen(d.createdTs))}. Oxirgi o‘zgarish: ${esc(fmtWhen(d.updatedTs))}.</div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
-          <div class="card card-pad">
+          <div class="card card-pad dr-b">
             <div class="row between" style="margin-bottom:6px;">
               <h3 class="card-title">Vazifalar</h3>
               <button class="btn btn-soft btn-sm" data-act="quick-task" data-id="${id}">${ic("plus", 14)}Vazifa</button>
@@ -2286,7 +2251,7 @@ function renderDrawer(fresh) {
             }).join("") : `<p class="muted" style="padding:6px 0;">${isOpenDeal(d) ? "Keyingi qadam belgilanmagan. Vazifa qo‘shing — bemor unutilib qolmaydi." : "Vazifalar yo‘q."}</p>`}
           </div>
 
-          <div class="card card-pad">
+          <div class="card card-pad dr-c">
             <h3 class="card-title" style="margin-bottom:12px;">Tarix va izohlar</h3>
             <textarea id="newCommentText" class="field" rows="3" placeholder="Bemor bilan nima kelishildi? Izoh yozing…">${esc(draft)}</textarea>
             <div class="row between wrap" style="margin:8px 0 6px;">
@@ -2299,7 +2264,6 @@ function renderDrawer(fresh) {
             </div>
             <div class="timeline" id="drTimeline">${timelineHtml(d)}</div>
           </div>
-        </div>
       </div>
     </div>
 
@@ -2315,6 +2279,23 @@ function renderDrawer(fresh) {
     const n = $(keep.sel, el);
     if (n) { if (keep.value != null && n.tagName !== "BUTTON") n.value = keep.value; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} }
   }
+}
+
+/* --- Bosqich faqat varaqada va tasdiqlash bilan o‘zgaradi --- */
+function askStageChange(d, to) {
+  const c = d.client || {};
+  return confirmBox({
+    title: "Bosqich o‘zgarsinmi?",
+    html: `<span class="stage-change">${stageBadge(d.stage)}${ic("chevR", 16, 2.5)}${stageBadge(to)}</span><span class="stage-change-who">${esc(c.name || d.name || "Nomsiz bemor")}</span>`,
+    ok: "Ha, o‘zgartirish",
+    cancel: "Yo‘q",
+    danger: false
+  });
+}
+async function confirmStage(id, stage) {
+  const d = findDeal(id);
+  if (!d || d.stage === stage) return;
+  if (await askStageChange(d, stage)) changeStage([id], stage);
 }
 
 /* --- Varaqadagi maydonni joyida saqlash --- */
@@ -2812,6 +2793,7 @@ async function saveCall() {
   if (!d) return;
   const outcome = $("#callOutcome").value, dur = Number($("#callDuration").value) || 0, notes = $("#callNotes").value.trim();
   const stage = $("#callStage").value, next = $("#callNext").value;
+  if (stage && stage !== d.stage && !(await askStageChange(d, stage))) return;
   return withProgress("Qo‘ng‘iroqni qayd etish", async () => {
   const snap = { stage: d.stage, events: (d.events || []).slice(), tasks: (d.tasks || []).slice(), updatedTs: d.updatedTs };
   addEvent(d, "call", `${meB()} qo‘ng‘iroq qildi (${dur} daqiqa): <span class="badge" style="background:var(--success-bg);color:var(--success);font-weight:700;">${esc(outcome)}</span>${notes ? `<br><i style="color:var(--text-sub);">${esc(notes)}</i>` : ""}`);
@@ -3215,16 +3197,13 @@ const ACT = {
   "clear-filters": () => { setFilters({}); Pop.close(); renderDeals(); },
   "rail": el => ACT.ftoggle({ dataset: { k: "stages", v: el.dataset.stage } }),
   "open-deal": el => openDrawer(el.dataset.id),
-  "stage-pop": el => { const ids = [el.dataset.id]; Pop.open(el, stagePopHtml(ids), { ids }, { key: "st-" + el.dataset.id, width: 240 }); },
   "owner-pop": el => { const ids = [el.dataset.id]; Pop.open(el, ownerPopHtml(ids), { ids }, { key: "ow-" + el.dataset.id, width: 300 }); },
-  "set-stage": el => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); changeStage(ids, el.dataset.stage); },
   "set-owner": el => {
     const ids = (Pop.ctx && Pop.ctx.ids) || [], m = managerList().find(x => sid(x.id) === el.dataset.mid);
     Pop.close();
     if (m) changeOwner(ids, m);
   },
   "distribute": () => { const ids = (Pop.ctx && Pop.ctx.ids) || []; Pop.close(); openAssignModal(ids); },
-  "bulk-stage": el => { const ids = selectedIds(); Pop.open(el, stagePopHtml(ids), { ids }, { key: "bulk-stage", width: 260 }); },
   "bulk-owner": el => { const ids = selectedIds(); Pop.open(el, ownerPopHtml(ids), { ids }, { key: "bulk-owner", width: 320 }); },
   "bulk-task": () => openTaskModal(selectedIds()),
   "bulk-export": () => exportCSV(selectedIds().map(findDeal).filter(Boolean), "tanlanganlar"),
@@ -3243,7 +3222,7 @@ const ACT = {
     const i = S.cur.findIndex(x => same(x.id, S.drawerId)), n = S.cur[i + Number(el.dataset.d)];
     if (i > -1 && n) { S.drawerId = sid(n.id); renderDrawer(true); }
   },
-  "dr-stage": el => { if (S.drawerId) changeStage([S.drawerId], el.dataset.stage); },
+  "dr-stage": el => { if (S.drawerId) confirmStage(S.drawerId, el.dataset.stage); },
   "dr-edit": () => { const d = findDeal(S.drawerId); if (d) openDealModal(d); },
   "dr-delete": () => { if (S.drawerId) deleteDeals([S.drawerId]); },
   "dr-call": () => { const d = findDeal(S.drawerId); if (d) openCallModal(d); },
