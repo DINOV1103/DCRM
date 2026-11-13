@@ -106,7 +106,7 @@ h1, h2, h3 { font-weight: 700; letter-spacing: -0.015em; }
 .num { font-variant-numeric: tabular-nums; }
 .muted { color: var(--ink-3); }
 .sub { color: var(--ink-2); }
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 svg.ic { flex-shrink: 0; display: block; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -512,6 +512,35 @@ button.list-row:hover { background: var(--surface-2); }
 .stat3 span { font-size: 12px; color: var(--ink-3); }
 .group-title { font-size: 13.5px; font-weight: 700; padding: 12px 16px 8px; display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
 
+/* ============ Jamoa va vakolatlar ============ */
+span.owner-btn:hover { background: none; }
+.team-card.is-off { opacity: .72; }
+.perm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.perm-list { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px; }
+.perm-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.perm-row:hover { background: var(--surface-2); }
+.perm-row .check { margin-top: 2px; }
+.perm-row b { display: block; font-size: 13.5px; font-weight: 600; }
+.perm-row .sub { display: block; font-size: 12.5px; }
+.perm-row input:disabled + span { opacity: .7; }
+.perm-active { border: 1px solid var(--line); }
+#u_role button:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ============ Sozlamalar: bosqichlar ============ */
+.st-head, .st-row { display: grid; grid-template-columns: 28px 30px minmax(0, 1fr) 190px 64px 104px; gap: 10px; align-items: center; padding: 0 16px; }
+.st-head { font-size: 12.5px; font-weight: 600; color: var(--ink-3); height: 34px; background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.st-row { min-height: 54px; border-bottom: 1px solid var(--line); }
+.st-row:last-child { border-bottom: none; }
+.st-pos { color: var(--ink-3); font-weight: 600; text-align: center; }
+.st-color { width: 26px; height: 26px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px color-mix(in srgb, #000 15%, transparent); }
+.st-color:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent); }
+.st-name, .st-kind { height: 36px; }
+.st-acts { display: inline-flex; justify-content: flex-end; gap: 2px; }
+.st-acts .icon-btn[disabled] { opacity: .3; cursor: not-allowed; background: none; }
+.swatches { display: grid; grid-template-columns: repeat(5, 32px); gap: 8px; padding: 6px 12px 12px; }
+.sw-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--c); }
+.sw-btn.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c); }
+
 /* ============ Command palette ============ */
 .cmd { width: 580px; max-width: 100%; align-self: flex-start; margin-top: 10vh; }
 .cmd-input { width: 100%; border: none; background: transparent; padding: 16px 12px; font-size: 16px; outline: none; }
@@ -619,6 +648,12 @@ button.list-row:hover { background: var(--surface-2); }
   .owner-btn { max-width: 100%; }
   .rail { grid-auto-columns: 96px; }
 }
+@media (max-width: 860px) {
+  .st-head { display: none; }
+  .st-row { grid-template-columns: 22px 28px minmax(0, 1fr) auto; grid-template-areas: "pos col name acts" ". . kind acts"; padding: 10px 12px; row-gap: 8px; }
+  .st-pos { grid-area: pos; } .st-color { grid-area: col; } .st-name { grid-area: name; } .st-kind { grid-area: kind; }
+  .st-acts { grid-area: acts; flex-direction: column; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -651,7 +686,11 @@ button.list-row:hover { background: var(--surface-2); }
     <div id="loginErr" class="auth-err hidden"></div>
     <button id="loginBtn" class="btn btn-primary" style="width:100%;height:42px;font-size:14.5px;">Tizimga kirish</button>
     <div class="or-line">yoki</div>
-    <button id="demoLoginBtn" class="btn btn-soft" style="width:100%;height:40px;">Demo ma‘lumotlar bilan sinab ko‘rish</button>
+    <div class="lbl" style="text-align:center;margin-bottom:8px;">Demo ma’lumotlar bilan sinab ko‘rish</div>
+    <div class="form-grid" style="gap:8px;">
+      <button id="demoLoginBtn" class="btn btn-soft" style="height:40px;">Admin sifatida</button>
+      <button id="demoManagerBtn" class="btn btn-soft" style="height:40px;">Menejer sifatida</button>
+    </div>
   </div>
 </div>
 
@@ -675,10 +714,11 @@ button.list-row:hover { background: var(--surface-2); }
     <button class="nav-item" data-view="tasks" title="Vazifalar"><i data-ic="tasks" data-s="18"></i><span class="sb-text">Vazifalar</span><span id="taskCountBadge" class="nav-count sb-text">0</span></button>
     <button class="nav-item" data-view="clients" title="Mijozlar"><i data-ic="users" data-s="18"></i><span class="sb-text">Mijozlar</span></button>
     <button class="nav-item" data-view="analytics" title="Tahlil"><i data-ic="chart" data-s="18"></i><span class="sb-text">Tahlil va reja</span></button>
-    <button class="nav-item" data-view="team" id="navTeam" title="Jamoa"><i data-ic="userCheck" data-s="18"></i><span class="sb-text">Jamoa</span></button>
+    <button class="nav-item" data-view="team" id="navTeam" data-admin title="Jamoa"><i data-ic="userCheck" data-s="18"></i><span class="sb-text">Jamoa</span></button>
+    <button class="nav-item" data-view="settings" id="navSettings" data-admin title="Sozlamalar"><i data-ic="sliders" data-s="18"></i><span class="sb-text">Sozlamalar</span></button>
 
     <div class="sb-group sb-text">Asboblar</div>
-    <button class="nav-item" data-act="export-all" title="CSV eksport"><i data-ic="download" data-s="18"></i><span class="sb-text">CSV eksport</span></button>
+    <button class="nav-item" data-act="export-all" data-perm="export" title="CSV eksport"><i data-ic="download" data-s="18"></i><span class="sb-text">CSV eksport</span></button>
     <button class="nav-item" data-act="open-cmd" title="Tezkor qidiruv va buyruqlar"><i data-ic="search" data-s="18"></i><span class="sb-text">Tezkor qidiruv</span><span class="kbd sb-text" style="margin-left:auto;">Ctrl K</span></button>
   </nav>
 
@@ -722,6 +762,7 @@ button.list-row:hover { background: var(--surface-2); }
     <section id="view-clients" class="view"></section>
     <section id="view-analytics" class="view"></section>
     <section id="view-team" class="view"></section>
+    <section id="view-settings" class="view"></section>
     <div id="toasts" class="toasts" aria-live="polite"></div>
   </div>
 </main>
@@ -733,11 +774,11 @@ button.list-row:hover { background: var(--surface-2); }
 <!-- ======================= OMMAVIY AMALLAR PANELI ======================= -->
 <div id="bulkbar" class="bulkbar" role="toolbar" aria-label="Tanlangan bitimlar bilan amallar">
   <div class="bb-info"><b id="bbCount">0</b> ta tanlandi <span id="bbSum"></span></div>
-  <button class="btn bb-main" data-act="bulk-owner"><i data-ic="userCheck" data-s="16"></i><span class="bb-t">Menejerga o‘tkazish</span></button>
+  <button class="btn bb-main" data-act="bulk-owner" data-perm="transfer"><i data-ic="userCheck" data-s="16"></i><span class="bb-t">Menejerga o‘tkazish</span></button>
   <button class="btn" data-act="bulk-stage"><i data-ic="swap" data-s="16"></i><span class="bb-t">Bosqichni almashtirish</span></button>
   <button class="btn" data-act="bulk-task"><i data-ic="calendar" data-s="16"></i><span class="bb-t">Vazifa qo‘shish</span></button>
-  <button class="btn" data-act="bulk-export" title="Tanlanganlarni CSV qilib yuklash"><i data-ic="download" data-s="16"></i><span class="bb-t">CSV</span></button>
-  <button class="btn bb-del" data-act="bulk-delete" title="Tanlanganlarni o‘chirish"><i data-ic="trash" data-s="16"></i></button>
+  <button class="btn" data-act="bulk-export" data-perm="export" title="Tanlanganlarni CSV qilib yuklash"><i data-ic="download" data-s="16"></i><span class="bb-t">CSV</span></button>
+  <button class="btn bb-del" data-act="bulk-delete" data-perm="delete" title="Tanlanganlarni o‘chirish"><i data-ic="trash" data-s="16"></i></button>
   <button class="icon-btn" data-act="clear-sel" title="Tanlovni bekor qilish (Esc)"><i data-ic="x" data-s="18"></i></button>
 </div>
 
@@ -976,6 +1017,49 @@ button.list-row:hover { background: var(--surface-2); }
   </div>
 </div>
 
+<!-- ======================= FOYDALANUVCHI QO'SHISH / TAHRIRLASH ======================= -->
+<div id="userModal" class="overlay">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-head">
+      <h3 id="userModalTitle">Foydalanuvchi qo‘shish</h3>
+      <button class="icon-btn" data-act="close-modal" title="Yopish"><i data-ic="x" data-s="18"></i></button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label class="lbl" for="u_name">F.I.Sh.</label>
+        <input id="u_name" class="field" placeholder="Shaxzod Xurramov" autocomplete="off" maxlength="60">
+      </div>
+      <div class="form-grid">
+        <div>
+          <label class="lbl" for="u_email">Email (login)</label>
+          <input id="u_email" type="email" class="field" placeholder="menejer@dcrm.uz" autocomplete="off">
+        </div>
+        <div>
+          <label class="lbl" for="u_pass" id="u_pass_l">Parol</label>
+          <input id="u_pass" type="text" class="field" placeholder="Kamida 8 belgi" autocomplete="new-password">
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Rol</span>
+        <div class="seg" id="u_role"><button type="button" data-role="manager">Menejer</button><button type="button" data-role="admin">Admin</button></div>
+        <div class="hint" id="u_role_hint"></div>
+      </div>
+      <div id="u_perms_box">
+        <span class="lbl">Vakolatlar</span>
+        <div id="u_perms" class="perm-list"></div>
+        <div class="hint" id="u_perm_hint"></div>
+      </div>
+      <label class="perm-row perm-active" id="u_active_row"><input type="checkbox" class="check" id="u_active"><span><b>Faol</b><span class="sub">O‘chirilsa, tizimga kirsa ham hech narsa ko‘rmaydi</span></span></label>
+      <div class="hint" id="u_self_hint" hidden>O‘zingizning rolingiz va holatingizni o‘zgartira olmaysiz.</div>
+      <div id="u_err" class="auth-err hidden" style="margin:0;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-soft" data-act="close-modal">Bekor qilish</button>
+      <button id="saveUserBtn" class="btn btn-primary">Qo‘shish</button>
+    </div>
+  </div>
+</div>
+
 <!-- ======================= TASDIQLASH ======================= -->
 <div id="confirmModal" class="overlay" style="z-index:300;">
   <div class="modal" style="max-width:420px;">
@@ -1008,22 +1092,43 @@ if (window.supabase && window.supabase.createClient) {
 const TABLE = "deals";
 const PROFILES = "profiles";
 
-const STAGES = ["ПЕРВИЧНЫЙ","КОНСУЛЬТАЦИЯ","ПРИНИМАЕТ РЕШЕНИЯ","ЗАКАЗ","КАЙТА ХАРИД","НЕКОРРЕКТНЫЙ","НЕДОЗВОН","ОТКАЗ","УСПЕШНО","ДОСТАВКА","ФИНИШ","ТАРГЕТ ЛИТ"];
-const LOST = ["НЕКОРРЕКТНЫЙ","НЕДОЗВОН","ОТКАЗ"];
-const WON = "УСПЕШНО";
-
-const STAGE_NAME = {
-  "ПЕРВИЧНЫЙ":"Первичный","КОНСУЛЬТАЦИЯ":"Консультация","ПРИНИМАЕТ РЕШЕНИЯ":"Принимает решения",
-  "ЗАКАЗ":"Заказ","КАЙТА ХАРИД":"Кайта харид","НЕКОРРЕКТНЫЙ":"Некорректный","НЕДОЗВОН":"Недозвон",
-  "ОТКАЗ":"Отказ","УСПЕШНО":"Успешно","ДОСТАВКА":"Доставка","ФИНИШ":"Финиш","ТАРГЕТ ЛИТ":"Таргет лит"
-};
-const STAGE_HEX = {
-  "ПЕРВИЧНЫЙ":"#3B82C4","КОНСУЛЬТАЦИЯ":"#1AA3B8","ПРИНИМАЕТ РЕШЕНИЯ":"#D99A1C",
-  "ЗАКАЗ":"#8B5CD6","КАЙТА ХАРИД":"#6FA82B","НЕКОРРЕКТНЫЙ":"#7C8794","НЕДОЗВОН":"#D4619E",
-  "ОТКАЗ":"#D5433B","УСПЕШНО":"#1F9D61","ДОСТАВКА":"#4F6FD8","ФИНИШ":"#A8813A","ТАРГЕТ ЛИТ":"#E0703A"
-};
-const stageName = st => STAGE_NAME[st] || st || "—";
-const stageHex = st => STAGE_HEX[st] || "#7C8794";
+/* Bosqichlar bazadagi "stages" jadvalidan olinadi; admin ularni Sozlamalar bo‘limida o‘zgartiradi.
+   key — bitimda saqlanadigan kod, name — ko‘rinadigan nom, kind — open | won | lost. */
+const DEFAULT_STAGES = [
+  { key: "ПЕРВИЧНЫЙ", name: "Первичный", color: "#3B82C4", position: 1, kind: "open" },
+  { key: "КОНСУЛЬТАЦИЯ", name: "Консультация", color: "#1AA3B8", position: 2, kind: "open" },
+  { key: "ПРИНИМАЕТ РЕШЕНИЯ", name: "Принимает решения", color: "#D99A1C", position: 3, kind: "open" },
+  { key: "ЗАКАЗ", name: "Заказ", color: "#8B5CD6", position: 4, kind: "open" },
+  { key: "КАЙТА ХАРИД", name: "Кайта харид", color: "#6FA82B", position: 5, kind: "open" },
+  { key: "НЕКОРРЕКТНЫЙ", name: "Некорректный", color: "#7C8794", position: 6, kind: "lost" },
+  { key: "НЕДОЗВОН", name: "Недозвон", color: "#D4619E", position: 7, kind: "lost" },
+  { key: "ОТКАЗ", name: "Отказ", color: "#D5433B", position: 8, kind: "lost" },
+  { key: "УСПЕШНО", name: "Успешно", color: "#1F9D61", position: 9, kind: "won" },
+  { key: "ДОСТАВКА", name: "Доставка", color: "#4F6FD8", position: 10, kind: "open" },
+  { key: "ФИНИШ", name: "Финиш", color: "#A8813A", position: 11, kind: "open" },
+  { key: "ТАРГЕТ ЛИТ", name: "Таргет лит", color: "#E0703A", position: 12, kind: "open" }
+];
+const STAGE_KINDS = { open: "Jarayonda", won: "Yutilgan (savdo)", lost: "Yo‘qotilgan" };
+const STAGE_COLORS = ["#3B82C4","#1AA3B8","#0B7A6A","#1F9D61","#6FA82B","#D99A1C","#E0703A","#D5433B","#D4619E","#8B5CD6","#4F6FD8","#A8813A","#7C8794"];
+let STAGE_ROWS = [], STAGES = [], STAGE_META = {};
+function normStage(r) {
+  return {
+    key: String(r.key), name: String(r.name || r.key), position: Number(r.position) || 0,
+    color: /^#[0-9a-f]{6}$/i.test(r.color || "") ? r.color : "#7C8794",
+    kind: ["open", "won", "lost"].includes(r.kind) ? r.kind : "open"
+  };
+}
+function setStages(rows) {
+  STAGE_ROWS = rows.map(normStage).sort((a, b) => a.position - b.position);
+  STAGES = STAGE_ROWS.map(r => r.key);
+  STAGE_META = {};
+  STAGE_ROWS.forEach(r => { STAGE_META[r.key] = r; });
+}
+setStages(DEFAULT_STAGES);
+const stageName = st => (STAGE_META[st] && STAGE_META[st].name) || st || "—";
+const stageHex = st => (STAGE_META[st] && STAGE_META[st].color) || "#7C8794";
+const isWon = st => !!STAGE_META[st] && STAGE_META[st].kind === "won";
+const isLost = st => !!STAGE_META[st] && STAGE_META[st].kind === "lost";
 
 const FUNNELS = ["Sotuv varonkasi","Qayta sotuv","Ulgurji mijozlar"];
 const CITIES = ["Toshkent","Toshkent viloyati","Andijon","Buxoro","Farg'ona","Jizzax","Namangan","Navoiy","Qashqadaryo","Qoraqalpog'iston","Samarqand","Sirdaryo","Surxondaryo","Xorazm"];
@@ -1049,12 +1154,12 @@ const MONTHS = ["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy
 const MONTHS_FULL = ["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"];
 
 const DEMO_MANAGERS = [
-  { id: "m1", name: "Muhiddin Sabriddinovich", role: "manager", email: "muhiddin@dcrm.uz" },
-  { id: "m2", name: "Asadxo'ja Azizxo'jayevich", role: "manager", email: "asadxoja@dcrm.uz" },
-  { id: "m3", name: "Shaxzod Xurramov", role: "manager", email: "shaxzod@dcrm.uz" },
-  { id: "m4", name: "Life Admin", role: "admin", email: "admin@dcrm.uz" }
+  { id: "m1", name: "Muhiddin Sabriddinovich", role: "admin", perms: {}, active: true, email: "muhiddin@dcrm.uz" },
+  { id: "m2", name: "Asadxo'ja Azizxo'jayevich", role: "manager", perms: {}, active: true, email: "asadxoja@dcrm.uz" },
+  { id: "m3", name: "Shaxzod Xurramov", role: "manager", perms: {}, active: true, email: "shaxzod@dcrm.uz" },
+  { id: "m4", name: "Life Admin", role: "admin", perms: {}, active: true, email: "admin@dcrm.uz" }
 ];
-const DEMO_ME = DEMO_MANAGERS[3];
+const DEMO_ME = DEMO_MANAGERS[0], DEMO_MANAGER_ME = DEMO_MANAGERS[2];
 let MANAGERS = DEMO_MANAGERS.slice();
 let ME = Object.assign({}, DEMO_ME);
 let isDemoMode = true;
@@ -1062,10 +1167,18 @@ let DEALS = [];
 const USD_RATE = 12850;
 
 const isDemo = () => isDemoMode || !sb;
-const isAdminRole = r => /admin|owner|rahbar|rop|head|boss|direktor/i.test(String(r || ""));
-/* Roli aniq "menejer" bo‘lgandagina faqat o‘z bitimlari yuklanadi; rol noma’lum bo‘lsa serverdagi ruxsatlar hal qiladi. */
-const isManagerOnly = () => !isDemo() && !!ME.role && !isAdminRole(ME.role);
-const canSeeTeam = () => !isManagerOnly();
+/* Rollar: admin — hammasi; menejer — faqat o‘z bitimlari, qo‘shimcha vakolatlarni admin beradi.
+   Bu yerda faqat ko‘rinish boshqariladi; haqiqiy cheklov bazadagi RLS qoidalarida. */
+const PERM_KEYS = ["view_all", "transfer", "delete", "export"];
+const PERM_INFO = {
+  view_all: ["Barcha bitimlarni ko‘radi", "Jamoaning bitimlari va umumiy statistika"],
+  transfer: ["Bitimni boshqaga o‘tkaza oladi", "Barcha bitimlarni ko‘rishni ham o‘z ichiga oladi"],
+  delete: ["Bitimni o‘chira oladi", "O‘chirilgan bitim tiklanmaydi"],
+  export: ["CSV eksport qila oladi", "Bitimlarni faylga yuklab olish"]
+};
+const isAdminRole = r => r === "admin";
+const isAdmin = () => ME.role === "admin";
+const can = p => isAdmin() || !!(ME.perms && (ME.perms[p] || (p === "view_all" && ME.perms.transfer)));
 
 /* ======================= YORDAMCHI FUNKSIYALAR ======================= */
 const $ = (s, r) => (r || document).querySelector(s);
@@ -1447,7 +1560,7 @@ function dealTaskState(d) {
   if (open.some(t => taskState(t) === "today")) return "today";
   return "later";
 }
-const isOpenDeal = d => d.stage !== WON && !LOST.includes(d.stage);
+const isOpenDeal = d => !isWon(d.stage) && !isLost(d.stage);
 function taskChip(d) {
   const t = nextTask(d);
   if (!t) return isOpenDeal(d) ? `<span class="tag warn" title="Ochiq bitimda keyingi qadam belgilanmagan">Vazifa yo‘q</span>` : `<span class="muted">—</span>`;
@@ -1457,8 +1570,8 @@ function taskChip(d) {
 
 function calculateDealHealth(d) {
   if (!d) return { score: 50, label: "O‘rtacha", color: "var(--warn)" };
-  if (d.stage === WON) return { score: 100, label: "Yutilgan", color: "var(--ok)" };
-  if (LOST.includes(d.stage)) return { score: 10, label: "Yo‘qotilgan", color: "var(--bad)" };
+  if (isWon(d.stage)) return { score: 100, label: "Yutilgan", color: "var(--ok)" };
+  if (isLost(d.stage)) return { score: 10, label: "Yo‘qotilgan", color: "var(--bad)" };
   let score = 50;
   const open = (d.tasks || []).filter(t => !t.done), done = (d.tasks || []).filter(t => t.done);
   if (done.length) score += 20;
@@ -1496,7 +1609,7 @@ function generateDemoDeals() {
     const ts = now - i * H * 3 - rnd(3) * H;
     const st = i < 6 ? "ПЕРВИЧНЫЙ" : (now - ts > 21 * D ? closedPool[rnd(closedPool.length)] : stagePool[rnd(stagePool.length)]);
     const mgr = i % 14 === 3 ? admin : sellers[i % sellers.length];
-    const closed = st === WON || LOST.includes(st) || st === "ФИНИШ";
+    const closed = isWon(st) || isLost(st) || st === "ФИНИШ";
     // Vazifalar: bir qismi kechikkan, bir qismi bugun, bir qismi keyin, ba'zilarida yo'q
     const tasks = [];
     if (closed) tasks.push({ id: "t_" + i + "_1", title: "Buyurtmani tasdiqlash", due: dStr(ts + D), done: true, owner: mgr.name });
@@ -1546,7 +1659,7 @@ const API = {
     const rows = [], PAGE = 1000;
     for (let from = 0; from < 10000; from += PAGE) {
       let qy = sb.from(TABLE).select("*").order("created_ts", { ascending: false }).range(from, from + PAGE - 1);
-      if (isManagerOnly()) qy = qy.eq("owner_id", ME.id);
+      if (!can("view_all")) qy = qy.eq("owner_id", ME.id);
       const { data, error } = await qy;
       if (error) throw error;
       rows.push(...(data || []));
@@ -1555,6 +1668,7 @@ const API = {
     return rows.map(normDeal);
   },
   async create(deal) {
+    if (!can("transfer")) { deal.owner = ME.name; deal.ownerId = ME.id; }
     if (isDemo()) { deal.id = "local_" + newId(); DEALS.unshift(deal); return deal; }
     const row = Object.assign(toRow(deal), { created_ts: deal.createdTs });
     const { data, error } = await sb.from(TABLE).insert(row).select().single();
@@ -1576,6 +1690,28 @@ const API = {
     DEALS = DEALS.filter(d => !ids.includes(sid(d.id)));
   }
 };
+const STAGES_TABLE = "stages";
+const StagesAPI = {
+  async load() {
+    if (isDemo()) return;
+    try {
+      const { data, error } = await sb.from(STAGES_TABLE).select("*").order("position", { ascending: true });
+      if (error) throw error;
+      if (data && data.length) setStages(data);
+    } catch (e) { console.warn("Bosqichlarni yuklab bo‘lmadi, standart ro‘yxat ishlatiladi:", e); }
+  },
+  async save(rows) {
+    if (isDemo() || !rows.length) return;
+    const { error } = await sb.from(STAGES_TABLE).upsert(rows.map(r => ({ key: r.key, name: r.name, color: r.color, position: r.position, kind: r.kind })));
+    if (error) throw error;
+  },
+  async remove(key) {
+    if (isDemo()) return;
+    const { error } = await sb.from(STAGES_TABLE).delete().eq("key", key);
+    if (error) throw error;
+  }
+};
+
 /* Bir nechta bitimni parallel saqlaydi; saqlanmaganlarini qaytaradi. */
 async function saveMany(deals) {
   if (isDemo() || !deals.length) return [];
@@ -1626,7 +1762,7 @@ async function applyStage(ids, stage) {
     d.events = (d.events || []).filter(e => e !== u.ev && !(e.ts === u.ev.ts && e.kind === "stage"));
   });
   refreshAll();
-  playSound(stage === WON ? "success" : "drop");
+  playSound(isWon(stage) ? "success" : "drop");
   const failed = await saveMany(deals);
   if (failed.length) {
     revert(undo.filter(u => failed.includes(u.d)));
@@ -1647,6 +1783,7 @@ async function applyStage(ids, stage) {
 
 /* mgrs — bitta yoki bir nechta menejer; bir nechta bo‘lsa bitimlar navbat bilan teng taqsimlanadi. */
 function changeOwner(ids, mgrs) {
+  if (!can("transfer")) { toast("Bitimni boshqaga o‘tkazishga ruxsatingiz yo‘q", "warn"); return Promise.resolve(); }
   const list = (Array.isArray(mgrs) ? mgrs : [mgrs]).filter(Boolean), all = ids.map(findDeal).filter(Boolean);
   if (!list.length || !all.length) return Promise.resolve();
   if (list.length === 1 && all.every(d => d.owner === list[0].name && same(d.ownerId, list[0].id))) { toast("Bitimlar allaqachon shu menejerda"); return Promise.resolve(); }
@@ -1704,6 +1841,7 @@ async function deleteDeals(ids) {
   ids = ids.map(sid);
   const n = ids.length;
   if (!n) return;
+  if (!can("delete")) { toast("Bitimni o‘chirishga ruxsatingiz yo‘q", "warn"); return; }
   const one = n === 1 ? findDeal(ids[0]) : null;
   const ok = await confirmBox({
     title: one ? "Bitim o‘chirilsinmi?" : `${plural(n)} o‘chirilsinmi?`,
@@ -1771,7 +1909,7 @@ const TASK_L = { overdue: "Kechikkan", today: "Bugun", none: "Vazifasiz", has: "
 
 const PRESETS = [
   { id: "all", label: "Barchasi", f: () => ({}) },
-  { id: "mine", label: "Mening bitimlarim", f: () => ({ owners: [ME.name] }) },
+  { id: "mine", label: "Mening bitimlarim", f: () => ({ owners: [ME.name] }), show: () => can("view_all") },
   { id: "open", label: "Ochiq", f: () => ({ status: "open" }) },
   { id: "today", label: "Bugungi vazifalar", f: () => ({ task: "today" }), count: true },
   { id: "overdue", label: "Kechikkan", f: () => ({ task: "overdue" }), count: true, alert: true },
@@ -1810,8 +1948,8 @@ function matchDeal(d, f, skip) {
   if (skip !== "funnels" && f.funnels.length && !f.funnels.includes(d.funnel)) return false;
   if (skip !== "cities" && f.cities.length && !f.cities.includes(c.city || "")) return false;
   if (f.status === "open" && !isOpenDeal(d)) return false;
-  if (f.status === "won" && d.stage !== WON) return false;
-  if (f.status === "lost" && !LOST.includes(d.stage)) return false;
+  if (f.status === "won" && !isWon(d.stage)) return false;
+  if (f.status === "lost" && !isLost(d.stage)) return false;
   if (f.task) {
     const ts = dealTaskState(d);
     if (f.task === "none" && ts !== "none") return false;
@@ -1849,9 +1987,17 @@ function sortDeals(arr) {
 }
 /* Bitim o'tkazish mumkin bo'lgan menejerlar: bazadagi ro'yxat, u bo'sh bo'lsa bitimlarda uchragan (ID si bor) mas'ullar ham. */
 function assignable() {
-  const all = managerList();
+  const all = managerList().filter(m => m.active !== false);
   return MANAGERS.length > 1 ? all.filter(m => !m.extra) : all.filter(m => !m.extra || m.id);
 }
+/* Bosqichlar ro‘yxati + bitimlarda uchragan, ammo ro‘yxatda yo‘q (o‘chirilgan) bosqichlar */
+function stageList() {
+  const extra = [];
+  DEALS.forEach(d => { if (d.stage && !STAGE_META[d.stage] && !extra.includes(d.stage)) extra.push(d.stage); });
+  return STAGES.concat(extra);
+}
+/* Bitim shu foydalanuvchinikimi (ID bo‘yicha, bo‘lmasa ism bo‘yicha) */
+const ownsDeal = (m, d) => (m.id && d.ownerId) ? same(m.id, d.ownerId) : (d.owner || "") === m.name;
 const getFilteredDeals = () => sortDeals(DEALS.filter(d => matchDeal(d, S.f)));
 const selectedIds = () => Array.from(S.sel);
 function managerList() {
@@ -1898,7 +2044,7 @@ function renderDeals() {
   const total = sum(list, d => d.budget);
 
   const key = fkey(f);
-  const tabs = PRESETS.map(p => {
+  const tabs = PRESETS.filter(p => !p.show || p.show()).map(p => {
     const pf = Object.assign(emptyFilters(), p.f());
     const n = p.count ? DEALS.filter(d => matchDeal(d, pf)).length : null;
     return `<button class="tab ${fkey(pf) === key ? "on" : ""}" data-act="tab" data-id="${p.id}">${p.label}${n ? `<span class="n ${p.alert ? "alert" : ""}">${n}</span>` : ""}</button>`;
@@ -1907,7 +2053,7 @@ function renderDeals() {
 
   const chips = filterChips();
   const railBase = DEALS.filter(d => matchDeal(d, f, "stages"));
-  const rail = STAGES.map(st => {
+  const rail = stageList().map(st => {
     const ds = railBase.filter(d => d.stage === st);
     return `<button class="rail-cell ${f.stages.includes(st) ? "on" : ""} ${ds.length ? "" : "zero"}" style="--c:${stageHex(st)}" data-act="rail" data-stage="${st}" title="${esc(stageName(st))} bo‘yicha filtrlash">
       <div class="rl">${esc(stageName(st))}</div><div class="rn">${ds.length}</div><div class="rs">${ds.length ? fmtShort(sum(ds, d => d.budget)) : "—"}</div></button>`;
@@ -1936,7 +2082,7 @@ function renderDeals() {
         ${f.q ? `<button class="icon-btn sm clear" data-act="rm-filter" data-k="q" title="Tozalash">${ic("x", 14)}</button>` : ""}
       </div>
       <button class="btn fbtn ${f.stages.length ? "is-on" : ""}" data-act="fpop" data-k="stages">Bosqich${f.stages.length ? `<span class="count-pill">${f.stages.length}</span>` : ""}${ic("chevD", 14)}</button>
-      <button class="btn fbtn ${f.owners.length ? "is-on" : ""}" data-act="fpop" data-k="owners">Menejer${f.owners.length ? `<span class="count-pill">${f.owners.length}</span>` : ""}${ic("chevD", 14)}</button>
+      <button class="btn fbtn ${f.owners.length ? "is-on" : ""}" data-act="fpop" data-k="owners" ${can("view_all") ? "" : "hidden"}>Menejer${f.owners.length ? `<span class="count-pill">${f.owners.length}</span>` : ""}${ic("chevD", 14)}</button>
       <button class="btn fbtn ${f.period ? "is-on" : ""}" data-act="fpop" data-k="period">${ic("calendar", 15)}${esc(f.period === "custom" ? "Oraliq" : periodL)}${ic("chevD", 14)}</button>
       <button class="btn fbtn ${mc ? "is-on" : ""}" data-act="fpop" data-k="more">${ic("sliders", 15)}Yana filtrlar${mc ? `<span class="count-pill">${mc}</span>` : ""}</button>
       ${isCustom ? `<button class="btn btn-ghost" data-act="save-view" title="Shu filtrlarni alohida ko‘rinish qilib saqlash">${ic("bookmark", 15)}Saqlash</button>` : ""}
@@ -1994,7 +2140,7 @@ function dealsTableHtml(list) {
               <td class="c-stage">${stageBadge(d.stage)}</td>
               <td class="c-client"><div class="t-main ellipsis" style="font-weight:500;max-width:180px;">${esc(cl.name || "Nomsiz mijoz")}</div><div class="t-sub num ellipsis" style="max-width:180px;">${esc(cl.phone || "—")}${cl.city ? `<span class="city-inline">, ${esc(cl.city)}</span>` : ""}</div></td>
               <td class="sub hide-lg">${esc(cl.city || "—")}</td>
-              <td class="c-owner"><button class="owner-btn" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button></td>
+              <td class="c-owner">${can("transfer") ? `<button class="owner-btn" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button>` : `<span class="owner-btn" style="cursor:default;">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span></span>`}</td>
               <td class="c-task">${taskChip(d)}</td>
               <td class="c-money">${fmtMoney(d.budget)}</td>
               <td class="sub hide-lg" style="white-space:nowrap;">${esc(fmtDate(d.createdTs))}</td>
@@ -2024,7 +2170,7 @@ function dealsTableHtml(list) {
 function dealsKanbanHtml(list) {
   if (!list.length && filtersActive(S.f)) return emptyDealsHtml();
   return `<div class="kanban ${S.sel.size ? "has-sel" : ""}" id="kanbanBoard">
-    ${STAGES.map(st => {
+    ${stageList().map(st => {
       const all = list.filter(d => d.stage === st), cap = S.kcap[st] || 40, shown = all.slice(0, cap);
       return `<div class="kcol" style="--c:${stageHex(st)}" data-stage="${st}">
         <div class="kcol-head">
@@ -2325,7 +2471,7 @@ function renderDrawer(fresh) {
           ${row("Soni va summa", `<input class="field" data-f="qty" type="number" min="1" value="${d.qty || 1}" aria-label="Soni" style="width:74px;flex:none;">` + `<input class="field" data-f="budget" type="number" min="0" step="50000" value="${d.budget || 0}" aria-label="Summa, so‘m" title="Summa, so‘m">`)}
           ${row("Buyurtma sanasi", `<input class="field" data-f="order" type="date" value="${esc(d.order || "")}" aria-label="Buyurtma sanasi">`)}
           ${row("Varonka", sel("funnel", FUNNELS, d.funnel, "Varonka"))}
-          ${row("Mas’ul menejer", `<button class="owner-btn" style="background:var(--surface-3);" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button>`)}
+          ${row("Mas’ul menejer", can("transfer") ? `<button class="owner-btn" style="background:var(--surface-3);" data-act="owner-pop" data-id="${id}" title="Boshqa menejerga o‘tkazish">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span>${ic("chevD", 12, 2.5)}</button>` : `<span class="owner-btn" style="cursor:default;">${avatar(d.owner)}<span class="ellipsis">${esc(d.owner || "Mas’ulsiz")}</span></span>`)}
           <div class="muted" style="font-size:12.5px;margin-top:14px;">Yaratilgan: ${esc(fmtWhen(d.createdTs))}. Oxirgi o‘zgarish: ${esc(fmtWhen(d.updatedTs))}.</div>
         </div>
 
@@ -2362,7 +2508,7 @@ function renderDrawer(fresh) {
       <button class="btn btn-primary" data-act="dr-call">${ic("phone", 15)}Qo‘ng‘iroqni qayd etish</button>
       <button class="btn btn-soft" data-act="dr-sms">${ic("msg", 15)}Xabar shabloni</button>
       <button class="btn btn-soft" data-act="dr-invoice">${ic("file", 15)}Kvitansiya</button>
-      <button class="btn btn-ghost" data-act="dr-delete" style="margin-left:auto;color:var(--bad);" title="Bitimni o‘chirish">${ic("trash", 15)}</button>
+      ${can("delete") ? `<button class="btn btn-ghost" data-act="dr-delete" style="margin-left:auto;color:var(--bad);" title="Bitimni o‘chirish">${ic("trash", 15)}</button>` : ""}
     </div>`;
   const body = $(".dr-body", el);
   if (body) body.scrollTop = scroll;
@@ -2524,7 +2670,8 @@ async function postComment() {
 
 /* ======================= BOSHQARUV PANELI ======================= */
 function wonTs(d) {
-  const ev = (d.events || []).find(e => e.kind === "stage" && (e.to === WON || String(e.html || "").includes(WON) || String(e.html || "").includes(stageName(WON))));
+  const wonKeys = STAGE_ROWS.filter(r => r.kind === "won");
+  const ev = (d.events || []).find(e => e.kind === "stage" && (isWon(e.to) || (!e.to && wonKeys.some(r => String(e.html || "").includes(r.key) || String(e.html || "").includes(r.name)))));
   return ev ? ev.ts : (d.updatedTs || d.createdTs);
 }
 function allTasks() {
@@ -2547,23 +2694,24 @@ function taskRowHtml(x, withCheck) {
 }
 function renderDashboard() {
   const c = $("#view-dash");
-  const open = DEALS.filter(isOpenDeal), won = DEALS.filter(d => d.stage === WON);
+  const open = DEALS.filter(isOpenDeal), won = DEALS.filter(d => isWon(d.stage));
   const wonSum = sum(won, d => d.budget), pipeSum = sum(open, d => d.budget);
   const conv = DEALS.length ? Math.round(won.length / DEALS.length * 100) : 0;
   const tasks = allTasks(), overdue = tasks.filter(x => x.st === "overdue"), today = tasks.filter(x => x.st === "today");
   const now = new Date(), m0 = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const monthWon = sum(won.filter(d => wonTs(d) >= m0), d => d.budget), goal = getGoal(), gp = Math.min(100, Math.round(monthWon / goal * 100));
-  const maxStage = Math.max(1, ...STAGES.map(st => DEALS.filter(d => d.stage === st).length));
-  const board = managerList().map(m => {
-    const w = won.filter(d => d.owner === m.name);
-    return { m, n: w.length, s: sum(w, d => d.budget), open: open.filter(d => d.owner === m.name).length };
-  }).sort((a, b) => b.s - a.s || b.open - a.open);
+  const maxStage = Math.max(1, ...stageList().map(st => DEALS.filter(d => d.stage === st).length));
+  const team = can("view_all");
+  const board = team ? managerList().filter(m => m.active !== false || DEALS.some(d => ownsDeal(m, d))).map(m => {
+    const w = won.filter(d => ownsDeal(m, d));
+    return { m, n: w.length, s: sum(w, d => d.budget), open: open.filter(d => ownsDeal(m, d)).length };
+  }).sort((a, b) => b.s - a.s || b.open - a.open) : [];
   const todo = overdue.concat(today).sort((a, b) => a.ts - b.ts).slice(0, 7);
   const noTask = open.filter(d => !nextTask(d)).length;
 
   c.innerHTML = `
     <div class="page-head">
-      <div><h2>Boshqaruv paneli</h2><div class="meta">${now.getDate()}-${MONTHS_FULL[now.getMonth()].toLowerCase()}, ${DEALS.length} ta bitim nazoratda</div></div>
+      <div><h2>${team ? "Boshqaruv paneli" : "Mening ko‘rsatkichlarim"}</h2><div class="meta">${now.getDate()}-${MONTHS_FULL[now.getMonth()].toLowerCase()}, ${team ? `${DEALS.length} ta bitim nazoratda` : `sizning ${DEALS.length} ta bitimingiz`}</div></div>
     </div>
     <div class="kpis">
       <button class="card kpi" data-act="goto" data-preset="open"><span class="k-l">Ochiq bitimlar summasi</span><span class="k-v">${fmtShort(pipeSum)}</span><span class="k-s">${open.length} ta bitim ishlanmoqda</span></button>
@@ -2574,7 +2722,7 @@ function renderDashboard() {
 
     <div class="card card-pad">
       <div class="row between wrap" style="margin-bottom:12px;">
-        <div><h3 class="card-title">${MONTHS_FULL[now.getMonth()]} oyi savdo rejasi</h3><div class="muted" style="font-size:13px;">Shu oyda yutilgan bitimlar summasi</div></div>
+        <div><h3 class="card-title">${MONTHS_FULL[now.getMonth()]} oyi ${team ? "savdo rejasi" : "shaxsiy rejangiz"}</h3><div class="muted" style="font-size:13px;">Shu oyda yutilgan bitimlar summasi</div></div>
         <div class="row" style="gap:12px;">
           <div style="text-align:right;"><div class="num" style="font-size:17px;font-weight:700;">${fmtShort(monthWon)} <span class="muted" style="font-weight:500;">/ ${fmtShort(goal)}</span></div><div class="muted" style="font-size:12.5px;">${gp}% bajarildi</div></div>
           <button class="btn btn-soft btn-sm" data-act="goal-edit">${ic("edit", 14)}Rejani o‘zgartirish</button>
@@ -2586,7 +2734,7 @@ function renderDashboard() {
     <div class="grid-2">
       <div class="card card-pad">
         <div class="row between" style="margin-bottom:10px;"><h3 class="card-title">Bosqichlar bo‘yicha</h3><span class="muted" style="font-size:13px;">Bosing — shu bosqich bitimlari ochiladi</span></div>
-        ${STAGES.map(st => {
+        ${stageList().map(st => {
           const ds = DEALS.filter(d => d.stage === st);
           return `<button class="funnel-row" style="--c:${stageHex(st)}" data-act="goto" data-stage="${st}">
             <span class="row" style="gap:8px;min-width:0;"><i style="width:8px;height:8px;border-radius:50%;background:var(--c);flex-shrink:0;"></i><span class="ellipsis" style="font-weight:500;">${esc(stageName(st))}</span></span>
@@ -2600,7 +2748,7 @@ function renderDashboard() {
           <div class="row between" style="padding:16px 16px 8px;"><h3 class="card-title">Bugun qilinadigan ishlar</h3><button class="link-btn" data-view-link="tasks">Hammasi</button></div>
           ${todo.length ? todo.map(x => taskRowHtml(x, true)).join("") : `<p class="muted" style="padding:6px 16px 18px;">Bugunga vazifa qolmadi.</p>`}
         </div>
-        <div class="card card-pad">
+        <div class="card card-pad" ${team ? "" : "hidden"}>
           <h3 class="card-title" style="margin-bottom:6px;">Menejerlar reytingi</h3>
           ${board.map((b, i) => `<button class="list-row" data-act="goto" data-owner="${esc(b.m.name)}">
             <span class="muted num" style="width:18px;text-align:center;font-weight:600;">${i + 1}</span>${avatar(b.m.name)}
@@ -2643,7 +2791,7 @@ function renderClients() {
     if (!map.has(key)) map.set(key, { name: cl.name || "Nomsiz mijoz", phone: cl.phone || "", city: cl.city || "", total: 0, won: 0, n: 0, last: 0 });
     const x = map.get(key);
     x.total += d.budget || 0; x.n++; x.last = Math.max(x.last, d.createdTs || 0);
-    if (d.stage === WON) x.won += d.budget || 0;
+    if (isWon(d.stage)) x.won += d.budget || 0;
   });
   const q = S.clientQ.toLowerCase().trim(), qd = digits(q);
   let list = Array.from(map.values());
@@ -2678,30 +2826,30 @@ function renderClients() {
 /* ======================= TAHLIL ======================= */
 function renderAnalytics() {
   const c = $("#view-analytics");
-  const won = DEALS.filter(d => d.stage === WON), lost = DEALS.filter(d => LOST.includes(d.stage));
+  const won = DEALS.filter(d => isWon(d.stage)), lost = DEALS.filter(d => isLost(d.stage)), team = can("view_all");
   const wonSum = sum(won, d => d.budget), avg = won.length ? Math.round(wonSum / won.length) : 0;
   const speeds = won.map(d => (wonTs(d) - d.createdTs) / 86400000).filter(v => v >= 0 && isFinite(v));
   const speed = speeds.length ? speeds.reduce((a, b) => a + b, 0) / speeds.length : null;
   const groupBy = getter => {
     const m = new Map();
-    DEALS.forEach(d => { const k = getter(d) || "Ko‘rsatilmagan"; if (!m.has(k)) m.set(k, { k, n: 0, won: 0, sum: 0 }); const x = m.get(k); x.n++; if (d.stage === WON) { x.won++; x.sum += d.budget || 0; } });
+    DEALS.forEach(d => { const k = getter(d) || "Ko‘rsatilmagan"; if (!m.has(k)) m.set(k, { k, n: 0, won: 0, sum: 0 }); const x = m.get(k); x.n++; if (isWon(d.stage)) { x.won++; x.sum += d.budget || 0; } });
     return Array.from(m.values());
   };
   const cities = groupBy(d => (d.client || {}).city).sort((a, b) => b.sum - a.sum || b.n - a.n).slice(0, 8), maxCity = Math.max(1, ...cities.map(x => x.sum));
-  const mgrs = managerList().map(m => {
-    const ds = DEALS.filter(d => d.owner === m.name), w = ds.filter(d => d.stage === WON);
-    return { m, n: ds.length, won: w.length, lost: ds.filter(d => LOST.includes(d.stage)).length, sum: sum(w, d => d.budget), over: ds.reduce((a, d) => a + (d.tasks || []).filter(t => taskState(t) === "overdue").length, 0) };
+  const mgrs = !team ? [] : managerList().filter(m => m.active !== false || DEALS.some(d => ownsDeal(m, d))).map(m => {
+    const ds = DEALS.filter(d => ownsDeal(m, d)), w = ds.filter(d => isWon(d.stage));
+    return { m, n: ds.length, won: w.length, lost: ds.filter(d => isLost(d.stage)).length, sum: sum(w, d => d.budget), over: ds.reduce((a, d) => a + (d.tasks || []).filter(t => taskState(t) === "overdue").length, 0) };
   }).sort((a, b) => b.sum - a.sum);
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
   c.innerHTML = `
-    <div class="page-head"><div><h2>Tahlil va reja</h2><div class="meta">Yuklangan ${DEALS.length} ta bitim asosida</div></div></div>
+    <div class="page-head"><div><h2>${team ? "Tahlil va reja" : "Mening tahlilim"}</h2><div class="meta">${team ? `Yuklangan ${DEALS.length} ta bitim asosida` : `Faqat sizning ${DEALS.length} ta bitimingiz asosida`}</div></div></div>
     <div class="kpis">
       <div class="card kpi"><span class="k-l">O‘rtacha chek</span><span class="k-v">${fmtShort(avg)}</span><span class="k-s">Yutilgan bitta bitimning o‘rtacha summasi</span></div>
       <div class="card kpi"><span class="k-l">Yutilgan va yo‘qotilgan</span><span class="k-v"><span style="color:var(--ok);">${won.length}</span> <span class="muted" style="font-weight:500;">/</span> <span style="color:var(--bad);">${lost.length}</span></span><span class="k-s">Yopilgan bitimlarning ${pct(won.length, won.length + lost.length)}% i yutilgan</span></div>
       <div class="card kpi"><span class="k-l">Bitim yopilish tezligi</span><span class="k-v">${speed == null ? "—" : (speed < 1 ? "1 kundan kam" : (Math.round(speed * 10) / 10).toString().replace(".", ",") + " kun")}</span><span class="k-s">Lid kelishidan yutilgunga qadar o‘rtacha</span></div>
       <div class="card kpi"><span class="k-l">Umumiy konversiya</span><span class="k-v">${pct(won.length, DEALS.length)}%</span><span class="k-s">Barcha lidlardan yutilganlar ulushi</span></div>
     </div>
-    <div class="card" style="overflow:auto;">
+    <div class="card" style="overflow:auto;" ${team ? "" : "hidden"}>
       <div style="padding:16px 16px 10px;"><h3 class="card-title">Menejerlar samaradorligi</h3></div>
       <table class="tbl">
         <thead><tr><th>Menejer</th><th style="text-align:right;">Bitimlar</th><th style="text-align:right;">Yutilgan</th><th style="text-align:right;">Yo‘qotilgan</th><th style="text-align:right;">Konversiya</th><th style="text-align:right;">Kechikkan vazifa</th><th class="c-money">Savdo</th></tr></thead>
@@ -2724,38 +2872,107 @@ function renderAnalytics() {
 }
 
 /* ======================= JAMOA ======================= */
+function permChips(m) {
+  if (m.role === "admin") return `<span class="tag accent">Hamma vakolatlar</span>`;
+  const on = PERM_KEYS.filter(k => m.perms && m.perms[k]);
+  return on.length ? on.map(k => `<span class="tag">${esc(PERM_INFO[k][0])}</span>`).join("") : `<span class="tag">Faqat o‘z bitimlari</span>`;
+}
 function renderTeam() {
   const c = $("#view-team");
   const mgrs = managerList();
+  const nAdmin = mgrs.filter(m => m.role === "admin" && !m.extra).length, nOff = mgrs.filter(m => m.active === false).length;
   c.innerHTML = `
-    <div class="page-head"><div><h2>Jamoa</h2><div class="meta">${mgrs.length} ta menejer. Yuklamani ko‘ring va bitimlarni qayta taqsimlang.</div></div></div>
+    <div class="page-head">
+      <div><h2>Jamoa</h2><div class="meta">${mgrs.filter(m => !m.extra).length} ta foydalanuvchi: ${nAdmin} ta admin, ${mgrs.filter(m => !m.extra).length - nAdmin} ta menejer${nOff ? `, ${nOff} tasi o‘chirilgan` : ""}</div></div>
+      <button class="btn btn-primary" data-act="user-add">${ic("plus", 16)}Foydalanuvchi qo‘shish</button>
+    </div>
     <div class="team-grid">
       ${mgrs.map(m => {
-        const ds = DEALS.filter(d => d.owner === m.name), open = ds.filter(isOpenDeal), w = ds.filter(d => d.stage === WON);
+        const ds = DEALS.filter(d => ownsDeal(m, d)), open = ds.filter(isOpenDeal), w = ds.filter(d => isWon(d.stage));
         const over = ds.reduce((a, d) => a + (d.tasks || []).filter(t => taskState(t) === "overdue").length, 0);
-        return `<div class="card card-pad">
-          <div class="row">${avatar(m.name, "lg")}<div class="grow"><div class="ellipsis" style="font-weight:700;font-size:15px;">${esc(m.name)}</div><div class="muted ellipsis" style="font-size:12.5px;">${isAdminRole(m.role) ? "Rahbar" : m.extra ? "Ro‘yxatda yo‘q, bitimlarda uchraydi" : "Menejer"}${m.email ? " · " + esc(m.email) : ""}</div></div></div>
+        const off = m.active === false, me = same(m.id, ME.id);
+        return `<div class="card card-pad team-card ${off ? "is-off" : ""}">
+          <div class="row" style="align-items:flex-start;">${avatar(m.name, "lg")}
+            <div class="grow"><div class="ellipsis" style="font-weight:700;font-size:15px;">${esc(m.name)}${me ? ` <span class="muted" style="font-weight:500;">(siz)</span>` : ""}</div>
+              <div class="muted ellipsis" style="font-size:12.5px;">${m.extra ? "Profili yo‘q — faqat bitimlarda uchraydi" : esc(m.email || "Email ko‘rsatilmagan")}</div></div>
+            ${m.extra ? "" : `<span class="tag ${m.role === "admin" ? "accent" : ""}">${m.role === "admin" ? "Admin" : "Menejer"}</span>`}
+          </div>
+          ${m.extra ? "" : `<div class="perm-chips">${off ? `<span class="tag bad">O‘chirilgan</span>` : ""}${permChips(m)}</div>`}
           <div class="stat3">
             <div><b>${open.length}</b><span>ochiq bitim</span></div>
             <div><b style="${over ? "color:var(--bad);" : ""}">${over}</b><span>kechikkan vazifa</span></div>
             <div><b>${w.length}</b><span>yutilgan</span></div>
           </div>
-          <div class="muted num" style="font-size:13px;margin-bottom:12px;">Ochiq bitimlar summasi: <b style="color:var(--ink);">${fmtShort(sum(open, d => d.budget))}</b></div>
-          <div class="row">
-            <button class="btn btn-soft btn-sm" data-act="goto" data-owner="${esc(m.name)}">Bitimlarini ko‘rish</button>
-            <button class="btn btn-soft btn-sm" data-act="team-transfer" data-name="${esc(m.name)}" ${open.length ? "" : "disabled"} title="Ochiq bitimlarini boshqa menejer(lar)ga o‘tkazish">${ic("userCheck", 14)}Bitimlarini o‘tkazish</button>
+          <div class="row wrap">
+            ${m.extra ? "" : `<button class="btn btn-soft btn-sm" data-act="user-edit" data-mid="${esc(sid(m.id))}">${ic("edit", 14)}Tahrirlash</button>`}
+            <button class="btn btn-ghost btn-sm" data-act="goto" data-owner="${esc(m.name)}">Bitimlari</button>
+            <button class="btn btn-ghost btn-sm" data-act="team-transfer" data-name="${esc(m.name)}" ${open.length ? "" : "disabled"} title="Ochiq bitimlarini boshqa menejer(lar)ga o‘tkazish">${ic("userCheck", 14)}O‘tkazish</button>
           </div>
         </div>`;
       }).join("")}
     </div>`;
 }
 
+/* ======================= SOZLAMALAR: BOSQICHLAR ======================= */
+function renderSettings() {
+  const c = $("#view-settings");
+  const counts = {};
+  DEALS.forEach(d => { counts[d.stage] = (counts[d.stage] || 0) + 1; });
+  const kindOpts = k => Object.keys(STAGE_KINDS).map(v => `<option value="${v}" ${v === k ? "selected" : ""}>${STAGE_KINDS[v]}</option>`).join("");
+  c.innerHTML = `
+    <div class="page-head"><div><h2>Sozlamalar</h2><div class="meta">O‘zgarishlar barcha foydalanuvchilarga ko‘rinadi</div></div></div>
+    <div class="card">
+      <div class="row between wrap" style="padding:16px 16px 12px;gap:12px;">
+        <div><h3 class="card-title">Bosqichlar</h3>
+          <div class="muted" style="font-size:13px;max-width:560px;">Tartib — kanban va bosqichlar qatoridagi ketma-ketlik. "Yutilgan" bosqichdagi bitimlar savdo sifatida hisoblanadi, "Yo‘qotilgan"lar — rad etilgan.</div></div>
+        <button class="btn btn-primary btn-sm" data-act="stage-add">${ic("plus", 15)}Bosqich qo‘shish</button>
+      </div>
+      <div class="st-head"><span>№</span><span></span><span>Nomi</span><span>Turi</span><span class="hide-sm">Bitimlar</span><span></span></div>
+      <div class="st-list">
+        ${STAGE_ROWS.map((r, i) => {
+          const n = counts[r.key] || 0, k = esc(r.key);
+          return `<div class="st-row" data-key="${k}">
+            <span class="st-pos num">${i + 1}</span>
+            <button class="st-color" style="--c:${r.color}" data-act="stage-color" data-key="${k}" title="Rangni tanlash" aria-label="Rang"></button>
+            <input class="field st-name" data-stage-name="${k}" value="${esc(r.name)}" maxlength="40" aria-label="Bosqich nomi">
+            <select class="field st-kind" data-stage-kind="${k}" aria-label="Bosqich turi">${kindOpts(r.kind)}</select>
+            <span class="st-count muted num hide-sm">${n} ta</span>
+            <span class="st-acts">
+              <button class="icon-btn sm" data-act="stage-move" data-key="${k}" data-d="-1" ${i === 0 ? "disabled" : ""} title="Yuqoriga">${ic("chevU", 16)}</button>
+              <button class="icon-btn sm" data-act="stage-move" data-key="${k}" data-d="1" ${i === STAGE_ROWS.length - 1 ? "disabled" : ""} title="Pastga">${ic("chevD", 16)}</button>
+              <button class="icon-btn sm" data-act="stage-del" data-key="${k}" ${n || STAGE_ROWS.length < 2 ? "disabled" : ""} title="${n ? `Bu bosqichda ${n} ta bitim bor — avval ularni boshqa bosqichga o‘tkazing` : "Bosqichni o‘chirish"}">${ic("trash", 15)}</button>
+            </span>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+/* Bosqich o‘zgarishi: avval ekranda, keyin bazada; xato bo‘lsa ortga qaytadi */
+function stageChange(label, mutate, done) {
+  return withProgress(label, async () => {
+    const prev = STAGE_ROWS.map(r => Object.assign({}, r));
+    const rows = STAGE_ROWS.map(r => Object.assign({}, r));
+    const changed = mutate(rows);
+    if (!changed || !changed.length) return;
+    setStages(rows);
+    refreshAll();
+    try { await StagesAPI.save(changed); }
+    catch (e) { console.warn(e); setStages(prev); refreshAll(); toast("Bosqichni saqlab bo‘lmadi: " + (e.message || "server xatosi"), "error"); return; }
+    if (done) done();
+  });
+}
+
 /* ======================= SAHIFALAR ALMASHINUVI ======================= */
-const VIEW_TITLES = { dash: "Boshqaruv paneli", deals: "Bitimlar", tasks: "Vazifalar", clients: "Mijozlar", analytics: "Tahlil va reja", team: "Jamoa" };
-const RENDER = { dash: renderDashboard, deals: renderDeals, tasks: renderTasks, clients: renderClients, analytics: renderAnalytics, team: renderTeam };
+const VIEW_TITLES = { dash: "Boshqaruv paneli", deals: "Bitimlar", tasks: "Vazifalar", clients: "Mijozlar", analytics: "Tahlil va reja", team: "Jamoa", settings: "Sozlamalar" };
+const RENDER = { dash: renderDashboard, deals: renderDeals, tasks: renderTasks, clients: renderClients, analytics: renderAnalytics, team: renderTeam, settings: renderSettings };
+/* Rolga qarab menyu va tugmalarni ko‘rsatish/yashirish */
+function applyRoleUI() {
+  $$("[data-perm]").forEach(el => { el.hidden = !can(el.dataset.perm); });
+  $$("[data-admin]").forEach(el => { el.hidden = !isAdmin(); });
+}
 function switchView(v) {
   if (!RENDER[v]) v = "deals";
-  if (v === "team" && !canSeeTeam()) v = "deals";
+  if ((v === "team" || v === "settings") && !isAdmin()) v = "deals";
   S.view = v;
   Pop.close();
   $$(".view").forEach(p => p.classList.toggle("active", p.id === "view-" + v));
@@ -2779,7 +2996,7 @@ function updateBadges() {
   tb.style.display = open ? "" : "none";
   $("#dealsCountBadge").textContent = DEALS.length;
   $("#notifDot").classList.toggle("hidden", !over);
-  $("#navTeam").style.display = canSeeTeam() ? "" : "none";
+  applyRoleUI();
 }
 function gotoDeals(patch) {
   setFilters(patch);
@@ -2800,11 +3017,12 @@ function openDealModal(deal) {
   const c = (deal && deal.client) || {};
   $("#dealModalTitle").textContent = deal ? "Bitimni tahrirlash" : "Yangi bitim";
   $("#saveDealModalBtn").textContent = deal ? "O‘zgarishlarni saqlash" : "Bitim yaratish";
-  const mgrNames = assignable().map(m => m.name);
+  const mgrNames = can("transfer") ? assignable().map(m => m.name) : [ME.name];
   const owner = deal ? deal.owner : ME.name;
   $("#f_deal_funnel").innerHTML = optList(withCurrent(FUNNELS, deal && deal.funnel), deal ? deal.funnel : FUNNELS[0]);
   $("#f_deal_stage").innerHTML = STAGES.map(s => `<option value="${s}" ${s === (deal ? deal.stage : STAGES[0]) ? "selected" : ""}>${esc(stageName(s))}</option>`).join("");
   $("#f_deal_owner").innerHTML = optList(withCurrent(mgrNames, owner), owner);
+  $("#f_deal_owner").disabled = !can("transfer");
   $("#f_client_city").innerHTML = optList(withCurrent(CITIES, c.city), c.city || CITIES[0]);
   $("#f_deal_name").value = deal ? deal.name || "" : "";
   $("#f_deal_budget").value = deal ? deal.budget || "" : "";
@@ -2862,7 +3080,7 @@ async function saveDealModal() {
       const deal = Object.assign({
         ownerId: mgr ? mgr.id : ME.id, createdTs: now, created: dStr(now), updatedTs: now,
         client: Object.assign({ email: "", ig: "" }, clientPatch),
-        tasks: fields.stage !== WON && !LOST.includes(fields.stage) ? [{ id: newId(), title: "Birinchi aloqa: qo‘ng‘iroq qilish", due: dStr(now + 86400000), done: false, owner: ownerName }] : [],
+        tasks: !isWon(fields.stage) && !isLost(fields.stage) ? [{ id: newId(), title: "Birinchi aloqa: qo‘ng‘iroq qilish", due: dStr(now + 86400000), done: false, owner: ownerName }] : [],
         events: [{ t: "event", kind: "create", ts: now, by: ME.name, html: `${meB()} bitim yaratdi.` }]
       }, fields);
       await API.create(deal);
@@ -3025,8 +3243,8 @@ function openTaskModal(ids) {
   $("#taskTitle").value = "";
   $("#taskDue").value = toLocalInput(dueFromQuick("tom"));
   $$("#taskDueQuick .opt").forEach(b => b.classList.toggle("on", b.dataset.due === "tom"));
-  const names = assignable().map(m => m.name);
-  $("#taskOwner").innerHTML = (one ? "" : `<option value="">Har bir bitimning o‘z mas’uli</option>`) + optList(withCurrent(names, one && one.owner), one ? one.owner || ME.name : null);
+  const names = can("transfer") ? assignable().map(m => m.name) : [ME.name];
+  $("#taskOwner").innerHTML = (one || !can("transfer") ? "" : `<option value="">Har bir bitimning o‘z mas’uli</option>`) + optList(withCurrent(names, one && one.owner), one ? one.owner || ME.name : null);
   openModal("taskModal");
   $("#taskTitle").focus();
 }
@@ -3077,15 +3295,17 @@ function renderCommandResults(query) {
     { title: "Bitimlar: jadval", desc: "Ro‘yxat ko‘rinishi", icon: "list", action: () => { S.mode = "list"; switchView("deals"); } },
     { title: "Bitimlar: kanban", desc: "Bosqichlar bo‘yicha ustunlar", icon: "columns", action: () => { S.mode = "kanban"; switchView("deals"); } },
     { title: "Kechikkan vazifali bitimlar", desc: "Zudlik bilan aloqa kerak", icon: "clock", action: () => gotoDeals({ task: "overdue" }) },
-    { title: "Mening bitimlarim", desc: "Faqat menga biriktirilganlar", icon: "userCheck", action: () => gotoDeals({ owners: [ME.name] }) },
+    can("view_all") && { title: "Mening bitimlarim", desc: "Faqat menga biriktirilganlar", icon: "userCheck", action: () => gotoDeals({ owners: [ME.name] }) },
+    isAdmin() && { title: "Jamoa", desc: "Foydalanuvchi qo‘shish va vakolatlar", icon: "users", action: () => switchView("team") },
+    isAdmin() && { title: "Sozlamalar: bosqichlar", desc: "Bosqich qo‘shish va tahrirlash", icon: "sliders", action: () => switchView("settings") },
     { title: "Boshqaruv paneli", desc: "Umumiy ko‘rsatkichlar", icon: "grid", action: () => switchView("dash") },
     { title: "Vazifalar", desc: "Barcha rejalashtirilgan ishlar", icon: "tasks", action: () => switchView("tasks") },
     { title: "Mijozlar", desc: "Mijozlar ro‘yxati", icon: "users", action: () => switchView("clients") },
     { title: "Tahlil va reja", desc: "Konversiya, shaharlar, menejerlar", icon: "chart", action: () => switchView("analytics") },
     { title: "Mavzuni almashtirish", desc: "Yorug‘ yoki tungi ko‘rinish", icon: "moon", action: () => toggleTheme() },
     { title: "Valyutani almashtirish", desc: "So‘m yoki dollar", icon: "swap", action: () => setCurrency(currentCurrency === "UZS" ? "USD" : "UZS") },
-    { title: "CSV eksport", desc: "Barcha bitimlarni faylga yuklash", icon: "download", action: () => exportCSV(DEALS) }
-  ];
+    can("export") && { title: "CSV eksport", desc: "Barcha bitimlarni faylga yuklash", icon: "download", action: () => exportCSV(DEALS) }
+  ].filter(Boolean);
   let matches = actions.filter(a => !q || a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
   if (q) {
     const deals = DEALS.filter(d => {
@@ -3145,7 +3365,7 @@ function setConn(state) {
 function renderUser() {
   $("#userAvatar").outerHTML = avatar(ME.name).replace('<span class="avatar', '<span id="userAvatar" class="avatar');
   $("#userName").textContent = ME.name;
-  $("#userRole").textContent = isDemo() ? "Demo foydalanuvchi" : isAdminRole(ME.role) ? "Rahbar" : ME.role ? "Menejer" : (ME.email || "Foydalanuvchi");
+  $("#userRole").textContent = (isAdmin() ? "Admin" : "Menejer") + (isDemo() ? " · demo" : "");
 }
 
 /* ======================= KIRISH VA MA'LUMOT YUKLASH ======================= */
@@ -3181,34 +3401,64 @@ function subscribeRealtime() {
       .subscribe();
   } catch (e) { console.warn("Realtime ulanmadi:", e); }
 }
-function enterDemo() {
+function enterDemo(asManager) {
   isDemoMode = true;
-  MANAGERS = DEMO_MANAGERS.slice();
-  ME = Object.assign({}, DEMO_ME);
-  DEALS = generateDemoDeals();
+  setStages(DEFAULT_STAGES);
+  MANAGERS = DEMO_MANAGERS.map(m => Object.assign({}, m, { perms: Object.assign({}, m.perms) }));
+  ME = Object.assign({}, MANAGERS.find(m => m.id === (asManager ? DEMO_MANAGER_ME : DEMO_ME).id));
+  let deals = generateDemoDeals();
+  if (!can("view_all")) {
+    // Bazadagi qoidalar kabi: menejer faqat o‘z bitimlari va o‘z profilini oladi
+    deals = deals.filter(d => same(d.ownerId, ME.id));
+    MANAGERS = MANAGERS.filter(m => same(m.id, ME.id));
+    if (S.f.owners.length) setFilters(Object.assign({}, S.f, { owners: [] }));
+  }
+  DEALS = deals;
   S.loading = false; S.loadError = ""; S.sel.clear();
-  setConn("demo"); hideAuth(); renderUser();
+  setConn("demo"); hideAuth(); renderUser(); applyRoleUI();
   switchView(S.view);
 }
+function normProfile(p) {
+  return {
+    id: p.id, email: p.email || "",
+    name: p.full_name || p.name || (p.email || "").split("@")[0] || "Foydalanuvchi",
+    role: p.role === "admin" ? "admin" : "manager",
+    perms: p.perms && typeof p.perms === "object" ? p.perms : {},
+    active: p.active !== false
+  };
+}
+async function loadProfiles() {
+  const { data, error } = await sb.from(PROFILES).select("*");
+  if (error) throw error;
+  MANAGERS = (data || []).filter(p => p && p.id).map(normProfile).sort((a, b) => a.name.localeCompare(b.name));
+}
+/* Haqiqiy kirish: profil (rol, vakolatlar, faol) va bosqichlar bazadan olinadi.
+   Profil topilmasa — eng kam huquq: oddiy menejer. */
 async function enterReal(user) {
   isDemoMode = false;
   const meta = user.user_metadata || {};
-  ME = { id: user.id, email: user.email || "", name: meta.full_name || meta.name || (user.email || "Menejer").split("@")[0], role: "" };
+  ME = { id: user.id, email: user.email || "", name: meta.full_name || meta.name || (user.email || "Menejer").split("@")[0], role: "manager", perms: {}, active: true };
   MANAGERS = [];
-  try {
-    const { data, error } = await sb.from(PROFILES).select("*");
-    if (error) throw error;
-    MANAGERS = (data || []).filter(p => p && p.id).map(p => ({ id: p.id, name: p.full_name || p.name || p.display_name || (p.email || "").split("@")[0] || "Menejer", role: p.role || "", email: p.email || "" }));
-  } catch (e) { console.warn("Menejerlar ro‘yxatini yuklab bo‘lmadi:", e); }
+  try { await loadProfiles(); } catch (e) { console.warn("Profillarni yuklab bo‘lmadi:", e); }
   const mine = MANAGERS.find(m => same(m.id, ME.id));
-  if (mine) { ME.name = mine.name || ME.name; ME.role = mine.role; if (!mine.email) mine.email = ME.email; }
+  if (mine) { Object.assign(ME, { name: mine.name || ME.name, role: mine.role, perms: mine.perms, active: mine.active }); if (!mine.email) mine.email = ME.email; }
   else MANAGERS.unshift(Object.assign({}, ME));
-  MANAGERS.sort((a, b) => a.name.localeCompare(b.name));
+  if (!ME.active) {
+    try { await sb.auth.signOut(); } catch (e) {}
+    isDemoMode = true; DEALS = []; MANAGERS = [];
+    showAuth();
+    $("#loginErr").textContent = "Hisobingiz o‘chirilgan. Admin bilan bog‘laning.";
+    $("#loginErr").classList.remove("hidden");
+    return false;
+  }
+  if (!can("view_all") && S.f.owners.length) setFilters(Object.assign({}, S.f, { owners: [] }));
+  await StagesAPI.load();
   DEALS = []; S.sel.clear();
-  hideAuth(); renderUser(); setConn("on");
+  hideAuth(); renderUser(); setConn("on"); applyRoleUI();
   switchView(S.view);
   await reloadDeals();
   subscribeRealtime();
+  return true;
 }
 async function doLogin() {
   const email = $("#loginEmail").value.trim(), password = $("#loginPass").value, err = $("#loginErr"), btn = $("#loginBtn");
@@ -3221,8 +3471,7 @@ async function doLogin() {
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
     $("#loginPass").value = "";
-    await enterReal(data.user);
-    toast("Xush kelibsiz, " + ME.name, "success");
+    if (await enterReal(data.user)) toast("Xush kelibsiz, " + ME.name, "success");
   } catch (e) {
     fail(/invalid login/i.test(e.message || "") ? "Email yoki parol noto‘g‘ri." : (e.message || "Kirishda xatolik yuz berdi."));
   } finally { btn.disabled = false; btn.textContent = "Tizimga kirish"; }
@@ -3246,7 +3495,7 @@ const ACT = {
   "close-pop": () => Pop.close(),
   "open-cmd": () => openCommandPalette(),
   "cmd-run": el => cmdRun(Number(el.dataset.i)),
-  "export-all": () => exportCSV(S.view === "deals" && filtersActive(S.f) ? S.cur : DEALS, S.view === "deals" && filtersActive(S.f) ? "filtr bo‘yicha" : ""),
+  "export-all": () => can("export") && exportCSV(S.view === "deals" && filtersActive(S.f) ? S.cur : DEALS, S.view === "deals" && filtersActive(S.f) ? "filtr bo‘yicha" : ""),
   "reload": () => reloadDeals(),
   "set-mode": el => { S.mode = el.dataset.mode; LS.setRaw("dcrm_mode", S.mode); renderDeals(); },
   "sort": el => {
@@ -3533,7 +3782,9 @@ async function initApp() {
     closeModals();
     changeOwner(assignIds, picked);
   };
-  $("#demoLoginBtn").onclick = () => { enterDemo(); playSound("success"); toast("Demo rejim: o‘zgarishlar saqlanmaydi", "info"); };
+  $("#demoLoginBtn").onclick = () => { enterDemo(false); playSound("success"); toast("Demo rejim (admin): o‘zgarishlar saqlanmaydi", "info"); };
+  $("#demoManagerBtn").onclick = () => { enterDemo(true); playSound("success"); toast("Demo rejim (menejer): faqat o‘z bitimlari ko‘rinadi", "info"); };
+  $("#saveUserBtn").onclick = saveUser;
   $("#loginBtn").onclick = doLogin;
   $("#logoutBtn").onclick = doLogout;
 
@@ -3580,6 +3831,181 @@ document.addEventListener("change", e => {
 document.addEventListener("keydown", e => {
   const t = e.target;
   if (e.key === "Enter" && t.tagName === "INPUT" && t.dataset.f && t.closest("#drawer")) { e.preventDefault(); t.blur(); }
+});
+
+/* ======================= JAMOA: FOYDALANUVCHI QO'SHISH VA VAKOLATLAR ======================= */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const U = { id: null, role: "manager" };
+function syncPermBoxes() {
+  const tr = $('#u_perms [data-perm-k="transfer"]'), va = $('#u_perms [data-perm-k="view_all"]');
+  if (tr && va) { if (tr.checked) va.checked = true; va.disabled = tr.checked; }
+  $("#u_perm_hint").textContent = $$("#u_perms input:checked").length ? "" : "Hech narsa belgilanmasa: faqat o‘z bitimlari va o‘z statistikasi.";
+}
+function renderPerms(perms) {
+  $("#u_perms").innerHTML = PERM_KEYS.map(k => `<label class="perm-row"><input type="checkbox" class="check" data-perm-k="${k}" ${perms[k] ? "checked" : ""}><span><b>${esc(PERM_INFO[k][0])}</b><span class="sub">${esc(PERM_INFO[k][1])}</span></span></label>`).join("");
+  syncPermBoxes();
+}
+function setUserRole(role) {
+  U.role = role;
+  $$("#u_role button").forEach(b => b.classList.toggle("on", b.dataset.role === role));
+  $("#u_perms_box").hidden = role === "admin";
+  $("#u_role_hint").textContent = role === "admin" ? "Admin hamma bitimni ko‘radi, foydalanuvchi va bosqichlarni boshqaradi." : "Menejer faqat o‘z bitimlarini ko‘radi. Qo‘shimcha vakolatlarni quyida belgilang.";
+}
+function openUserModal(m) {
+  U.id = m ? m.id : null;
+  const self = !!m && same(m.id, ME.id);
+  $("#userModalTitle").textContent = m ? "Foydalanuvchini tahrirlash" : "Foydalanuvchi qo‘shish";
+  $("#saveUserBtn").textContent = m ? "Saqlash" : "Qo‘shish";
+  $("#u_name").value = m ? m.name : "";
+  $("#u_email").value = m ? m.email : "";
+  $("#u_email").disabled = !!m;
+  $("#u_pass").value = "";
+  $("#u_pass_l").textContent = m ? "Yangi parol (ixtiyoriy)" : "Parol";
+  $("#u_pass").placeholder = m ? "O‘zgartirmasangiz, bo‘sh qoldiring" : "Kamida 8 belgi";
+  setUserRole(m ? m.role : "manager");
+  renderPerms(m ? (m.perms || {}) : {});
+  $("#u_active_row").hidden = !m;
+  $("#u_active").checked = !m || m.active !== false;
+  $$("#u_role button").forEach(b => { b.disabled = self; });
+  $("#u_active").disabled = self;
+  $("#u_self_hint").hidden = !self;
+  $("#u_err").classList.add("hidden");
+  openModal("userModal");
+  $("#u_name").focus();
+}
+function readPerms() {
+  const p = {};
+  $$("#u_perms input[data-perm-k]").forEach(i => { if (i.checked) p[i.dataset.permK] = true; });
+  if (p.transfer) p.view_all = true;
+  return p;
+}
+/* Foydalanuvchi yaratish va parol — server funksiyasi orqali (maxfiy kalit brauzerda bo‘lmaydi) */
+async function usersApi(payload) {
+  const { data } = await sb.auth.getSession();
+  const token = data && data.session && data.session.access_token;
+  if (!token) throw new Error("Sessiya tugagan, qayta kiring");
+  const r = await fetch("/api/users", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify(payload) });
+  let j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (!r.ok || !j.ok) throw new Error(j.error || `Server xatosi (${r.status})`);
+  return j;
+}
+function saveUser() {
+  const err = m => { $("#u_err").textContent = m; $("#u_err").classList.remove("hidden"); };
+  $("#u_err").classList.add("hidden");
+  const name = $("#u_name").value.trim(), email = $("#u_email").value.trim().toLowerCase(), pass = $("#u_pass").value;
+  const editing = U.id != null, role = U.role, perms = role === "admin" ? {} : readPerms();
+  const active = editing ? $("#u_active").checked : true;
+  if (!name) { err("F.I.Sh. kiriting"); $("#u_name").focus(); return; }
+  if (!editing && !EMAIL_RE.test(email)) { err("Email noto‘g‘ri"); $("#u_email").focus(); return; }
+  if (!editing && MANAGERS.some(m => (m.email || "").toLowerCase() === email)) { err("Bu email bilan foydalanuvchi allaqachon bor"); $("#u_email").focus(); return; }
+  if ((!editing || pass) && pass.length < 8) { err("Parol kamida 8 belgi bo‘lsin"); $("#u_pass").focus(); return; }
+  const old = editing ? MANAGERS.find(m => same(m.id, U.id)) : null;
+  if (editing && !old) return;
+  if (old && old.role === "admin" && old.active !== false && (role !== "admin" || !active)
+      && !MANAGERS.some(m => !same(m.id, old.id) && m.role === "admin" && m.active !== false)) { err("Kamida bitta faol admin qolishi kerak"); return; }
+  return withProgress(editing ? "Foydalanuvchini saqlash" : "Foydalanuvchi qo‘shish", async () => {
+    try {
+      if (!editing) {
+        if (isDemo()) MANAGERS.push({ id: "u_" + newId(), name, email, role, perms, active: true });
+        else { await usersApi({ action: "create", email, password: pass, full_name: name, role, perms }); await loadProfiles(); }
+        toast(`${name} qo‘shildi. Login: ${email}`, "success");
+      } else {
+        const oldName = old.name, renamed = oldName !== name;
+        if (!isDemo()) {
+          const { error } = await sb.from(PROFILES).update({ full_name: name, role, perms, active }).eq("id", old.id);
+          if (error) throw error;
+          if (renamed) { const r2 = await sb.from(TABLE).update({ owner: name }).eq("owner_id", old.id); if (r2.error) console.warn(r2.error); }
+          if (pass) await usersApi({ action: "set_password", id: old.id, password: pass });
+        }
+        Object.assign(old, { name, role, perms, active });
+        if (renamed) DEALS.forEach(d => { if (same(d.ownerId, old.id) || (!d.ownerId && d.owner === oldName)) d.owner = name; });
+        if (same(old.id, ME.id)) { ME.name = name; renderUser(); }
+        if (!isDemo()) await loadProfiles();
+        toast(pass ? "Saqlandi, parol yangilandi" : "Saqlandi", "success");
+      }
+      MANAGERS.sort((a, b) => a.name.localeCompare(b.name));
+      closeModals();
+      refreshAll();
+    } catch (e) {
+      console.warn(e);
+      err(e.message || "Saqlab bo‘lmadi");
+      toast("Saqlab bo‘lmadi: " + (e.message || "server xatosi"), "error");
+    }
+  });
+}
+ACT["user-add"] = () => { if (isAdmin()) openUserModal(null); };
+ACT["user-edit"] = el => { const m = MANAGERS.find(x => sid(x.id) === el.dataset.mid); if (m && isAdmin()) openUserModal(m); };
+
+/* ======================= SOZLAMALAR: BOSQICH AMALLARI ======================= */
+ACT["stage-add"] = () => {
+  if (!isAdmin()) return;
+  const key = "S" + Date.now().toString(36).toUpperCase();
+  const used = STAGE_ROWS.map(r => r.color);
+  const color = STAGE_COLORS.find(c => !used.includes(c)) || STAGE_COLORS[STAGE_ROWS.length % STAGE_COLORS.length];
+  stageChange("Yangi bosqich qo‘shish", rows => {
+    const r = { key, name: "Yangi bosqich", color, kind: "open", position: Math.max(0, ...rows.map(x => x.position)) + 1 };
+    rows.push(r);
+    return [r];
+  }, () => {
+    toast("Bosqich qo‘shildi — nomini yozing", "success");
+    const i = $(`[data-stage-name="${CSS.escape(key)}"]`);
+    if (i) { i.focus(); i.select(); }
+  });
+};
+ACT["stage-move"] = el => {
+  const key = el.dataset.key, d = Number(el.dataset.d);
+  stageChange("Bosqich tartibini o‘zgartirish", rows => {
+    const i = rows.findIndex(r => r.key === key), j = i + d;
+    if (i < 0 || j < 0 || j >= rows.length) return null;
+    const t = rows[i]; rows[i] = rows[j]; rows[j] = t;
+    rows.forEach((r, k) => { r.position = k + 1; });
+    return rows;
+  });
+};
+ACT["stage-del"] = async el => {
+  const r = STAGE_META[el.dataset.key];
+  if (!r || !isAdmin()) return;
+  const n = DEALS.filter(d => d.stage === r.key).length;
+  if (n) { toast(`Bu bosqichda ${n} ta bitim bor — avval ularni boshqa bosqichga o‘tkazing`, "warn"); return; }
+  if (!(await confirmBox({ title: "Bosqich o‘chirilsinmi?", text: `“${r.name}” bosqichi ro‘yxatdan olib tashlanadi.`, ok: "O‘chirish" }))) return;
+  withProgress("Bosqichni o‘chirish", async () => {
+    try { await StagesAPI.remove(r.key); }
+    catch (e) { console.warn(e); toast("O‘chirib bo‘lmadi: " + (e.message || "server xatosi"), "error"); return; }
+    setStages(STAGE_ROWS.filter(x => x.key !== r.key));
+    refreshAll();
+    toast(`“${r.name}” bosqichi o‘chirildi`, "success");
+  });
+};
+ACT["stage-color"] = el => {
+  const key = el.dataset.key;
+  Pop.open(el, `<div class="pop-head">Bosqich rangi</div><div class="swatches">${STAGE_COLORS.map(c => `<button class="sw-btn ${stageHex(key) === c ? "on" : ""}" style="--c:${c}" data-act="stage-color-set" data-c="${c}" aria-label="Rang ${c}"></button>`).join("")}</div>`, { key }, { key: "stc-" + key, width: 236 });
+};
+ACT["stage-color-set"] = el => {
+  const key = Pop.ctx && Pop.ctx.key, c = el.dataset.c;
+  Pop.close();
+  if (!key) return;
+  stageChange("Bosqich rangini saqlash", rows => { const r = rows.find(x => x.key === key); if (!r || r.color === c) return null; r.color = c; return [r]; });
+};
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (!t.dataset) return;
+  if (t.dataset.stageName != null) {
+    const key = t.dataset.stageName, v = t.value.trim();
+    if (!v) { t.value = stageName(key); return; }
+    stageChange("Bosqich nomini saqlash", rows => { const r = rows.find(x => x.key === key); if (!r || r.name === v) return null; r.name = v; return [r]; });
+  } else if (t.dataset.stageKind != null) {
+    const key = t.dataset.stageKind, v = t.value;
+    stageChange("Bosqich turini saqlash", rows => { const r = rows.find(x => x.key === key); if (!r || r.kind === v) return null; r.kind = v; return [r]; });
+  } else if (t.dataset.permK) syncPermBoxes();
+});
+document.addEventListener("keydown", e => {
+  const t = e.target;
+  if (e.key === "Enter" && t && t.dataset && t.dataset.stageName != null) { e.preventDefault(); t.blur(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target instanceof Element && e.target.closest("#u_role button");
+  if (b && !b.disabled) setUserRole(b.dataset.role);
 });
 </script>
 </body>
