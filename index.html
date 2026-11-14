@@ -1673,16 +1673,27 @@ function toRow(d) {
     client: d.client, tasks: d.tasks, events: d.events, updated_at: new Date().toISOString()
   };
 }
+const MAX_DEALS = 20000;
 const API = {
+  /* Bitimlarni 1000 tadan, 4 ta so‘rovni parallel yuborib yuklaydi (eng ko‘pi MAX_DEALS ta, eng yangilari) */
   async list() {
-    const rows = [], PAGE = 1000;
-    for (let from = 0; from < 10000; from += PAGE) {
-      let qy = sb.from(TABLE).select("*").order("created_ts", { ascending: false }).range(from, from + PAGE - 1);
+    const rows = [], PAGE = 1000, PAR = 4;
+    const page = from => {
+      let qy = sb.from(TABLE).select("*").order("created_ts", { ascending: false }).order("id", { ascending: false }).range(from, from + PAGE - 1);
       if (!can("view_all")) qy = qy.eq("owner_id", ME.id);
-      const { data, error } = await qy;
-      if (error) throw error;
-      rows.push(...(data || []));
-      if (!data || data.length < PAGE) break;
+      return qy;
+    };
+    for (let from = 0; from < MAX_DEALS; from += PAGE * PAR) {
+      const starts = [];
+      for (let k = 0; k < PAR && from + k * PAGE < MAX_DEALS; k++) starts.push(from + k * PAGE);
+      const res = await Promise.all(starts.map(page));
+      let end = false;
+      for (const { data, error } of res) {
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < PAGE) { end = true; break; }
+      }
+      if (end) break;
     }
     return rows.map(normDeal);
   },
