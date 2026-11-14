@@ -130,6 +130,8 @@ svg.ic { flex-shrink: 0; display: block; }
 .btn-ghost:hover { background: var(--surface-3); color: var(--ink); }
 .btn-danger { background: var(--bad); color: #fff; }
 .btn-danger:hover { filter: brightness(0.93); }
+.btn-del { color: var(--bad); }
+.btn-del:hover { background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--bad); }
 .btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: 7px; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 .btn.is-on { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
@@ -1049,11 +1051,12 @@ span.owner-btn:hover { background: none; }
         <div id="u_perms" class="perm-list"></div>
         <div class="hint" id="u_perm_hint"></div>
       </div>
-      <label class="perm-row perm-active" id="u_active_row"><input type="checkbox" class="check" id="u_active"><span><b>Faol</b><span class="sub">O‘chirilsa, tizimga kirsa ham hech narsa ko‘rmaydi</span></span></label>
+      <label class="perm-row perm-active" id="u_active_row"><input type="checkbox" class="check" id="u_active"><span><b>Faol</b><span class="sub">Belgi olinsa, hisob to‘xtatiladi: tizimga kirsa ham hech narsa ko‘rmaydi</span></span></label>
       <div class="hint" id="u_self_hint" hidden>O‘zingizning rolingiz va holatingizni o‘zgartira olmaysiz.</div>
       <div id="u_err" class="auth-err hidden" style="margin:0;"></div>
     </div>
     <div class="modal-foot">
+      <button id="delUserBtn" class="btn btn-ghost btn-del" data-act="user-del" hidden style="margin-right:auto;"><i data-ic="trash" data-s="15"></i>O‘chirish</button>
       <button class="btn btn-soft" data-act="close-modal">Bekor qilish</button>
       <button id="saveUserBtn" class="btn btn-primary">Qo‘shish</button>
     </div>
@@ -2883,7 +2886,7 @@ function renderTeam() {
   const nAdmin = mgrs.filter(m => m.role === "admin" && !m.extra).length, nOff = mgrs.filter(m => m.active === false).length;
   c.innerHTML = `
     <div class="page-head">
-      <div><h2>Jamoa</h2><div class="meta">${mgrs.filter(m => !m.extra).length} ta foydalanuvchi: ${nAdmin} ta admin, ${mgrs.filter(m => !m.extra).length - nAdmin} ta menejer${nOff ? `, ${nOff} tasi o‘chirilgan` : ""}</div></div>
+      <div><h2>Jamoa</h2><div class="meta">${mgrs.filter(m => !m.extra).length} ta foydalanuvchi: ${nAdmin} ta admin, ${mgrs.filter(m => !m.extra).length - nAdmin} ta menejer${nOff ? `, ${nOff} tasi to‘xtatilgan` : ""}</div></div>
       <button class="btn btn-primary" data-act="user-add">${ic("plus", 16)}Foydalanuvchi qo‘shish</button>
     </div>
     <div class="team-grid">
@@ -2897,7 +2900,7 @@ function renderTeam() {
               <div class="muted ellipsis" style="font-size:12.5px;">${m.extra ? "Profili yo‘q — faqat bitimlarda uchraydi" : esc(m.email || "Email ko‘rsatilmagan")}</div></div>
             ${m.extra ? "" : `<span class="tag ${m.role === "admin" ? "accent" : ""}">${m.role === "admin" ? "Admin" : "Menejer"}</span>`}
           </div>
-          ${m.extra ? "" : `<div class="perm-chips">${off ? `<span class="tag bad">O‘chirilgan</span>` : ""}${permChips(m)}</div>`}
+          ${m.extra ? "" : `<div class="perm-chips">${off ? `<span class="tag bad">To‘xtatilgan</span>` : ""}${permChips(m)}</div>`}
           <div class="stat3">
             <div><b>${open.length}</b><span>ochiq bitim</span></div>
             <div><b style="${over ? "color:var(--bad);" : ""}">${over}</b><span>kechikkan vazifa</span></div>
@@ -2907,6 +2910,7 @@ function renderTeam() {
             ${m.extra ? "" : `<button class="btn btn-soft btn-sm" data-act="user-edit" data-mid="${esc(sid(m.id))}">${ic("edit", 14)}Tahrirlash</button>`}
             <button class="btn btn-ghost btn-sm" data-act="goto" data-owner="${esc(m.name)}">Bitimlari</button>
             <button class="btn btn-ghost btn-sm" data-act="team-transfer" data-name="${esc(m.name)}" ${open.length ? "" : "disabled"} title="Ochiq bitimlarini boshqa menejer(lar)ga o‘tkazish">${ic("userCheck", 14)}O‘tkazish</button>
+            ${m.extra || me ? "" : `<button class="btn btn-ghost btn-sm btn-del" data-act="user-del" data-mid="${esc(sid(m.id))}" title="Foydalanuvchini butunlay o‘chirish">${ic("trash", 14)}O‘chirish</button>`}
           </div>
         </div>`;
       }).join("")}
@@ -3447,7 +3451,7 @@ async function enterReal(user) {
     try { await sb.auth.signOut(); } catch (e) {}
     isDemoMode = true; DEALS = []; MANAGERS = [];
     showAuth();
-    $("#loginErr").textContent = "Hisobingiz o‘chirilgan. Admin bilan bog‘laning.";
+    $("#loginErr").textContent = "Hisobingiz to‘xtatilgan. Admin bilan bog‘laning.";
     $("#loginErr").classList.remove("hidden");
     return false;
   }
@@ -3869,6 +3873,7 @@ function openUserModal(m) {
   $$("#u_role button").forEach(b => { b.disabled = self; });
   $("#u_active").disabled = self;
   $("#u_self_hint").hidden = !self;
+  $("#delUserBtn").hidden = !m || self;
   $("#u_err").classList.add("hidden");
   openModal("userModal");
   $("#u_name").focus();
@@ -3934,6 +3939,60 @@ function saveUser() {
     }
   });
 }
+/* Foydalanuvchini butunlay o‘chirish: bitimlari tanlangan odamga o‘tadi, hisobi o‘chadi */
+function lastActiveAdmin(m) {
+  return m.role === "admin" && m.active !== false && !MANAGERS.some(x => !same(x.id, m.id) && x.role === "admin" && x.active !== false);
+}
+async function deleteUser(m) {
+  if (!isAdmin() || !m || m.extra) return;
+  if (same(m.id, ME.id)) { toast("O‘zingizni o‘chira olmaysiz", "warn"); return; }
+  if (lastActiveAdmin(m)) { toast("Kamida bitta faol admin qolishi kerak", "warn"); return; }
+  const ds = DEALS.filter(d => ownsDeal(m, d)), open = ds.filter(isOpenDeal).length;
+  const heirs = assignable().filter(x => !same(x.id, m.id));
+  const def = heirs.find(x => same(x.id, ME.id)) || heirs[0];
+  if (!def) { toast("Bitimlarni oladigan faol foydalanuvchi yo‘q", "warn"); return; }
+  const ok = await confirmBox({
+    title: "Foydalanuvchini o‘chirish",
+    ok: "O‘chirish",
+    html: `<p><b>${esc(m.name)}</b> hisobi butunlay o‘chadi va u DCRM’ga boshqa kira olmaydi. Buni ortga qaytarib bo‘lmaydi.</p>
+      ${ds.length
+        ? `<label class="lbl" for="delHeir" style="display:block;margin:14px 0 6px;">Uning ${plural(ds.length)}i${open ? ` (${open} tasi ochiq)` : ""} kimga o‘tsin?</label>
+           <select id="delHeir" class="field">${heirs.map(x => `<option value="${esc(sid(x.id))}" ${x === def ? "selected" : ""}>${esc(x.name)}${same(x.id, ME.id) ? " (men)" : ""}</option>`).join("")}</select>`
+        : `<p class="muted" style="margin-top:10px;">Unda bitim yo‘q.</p>`}
+      <p class="muted" style="font-size:12.5px;margin-top:12px;">Vaqtincha to‘xtatish kerak bo‘lsa, o‘chirmang: Tahrirlash → «Faol» belgisini olib tashlang.</p>`
+  });
+  if (!ok) return;
+  const heir = ds.length ? (heirs.find(x => sid(x.id) === ($("#delHeir") || {}).value) || def) : def;
+  return withProgress(`${m.name} o‘chirilmoqda`, async () => {
+    const snap = ds.map(d => [d, JSON.stringify({ owner: d.owner, ownerId: d.ownerId, tasks: d.tasks, events: d.events, updatedTs: d.updatedTs })]);
+    try {
+      ds.forEach(d => {
+        (d.tasks || []).forEach(t => { if (!t.done && (t.owner || "") === (d.owner || "")) t.owner = heir.name; });
+        addEvent(d, "owner", `${meB()} ${esc(m.name)} hisobini o‘chirdi, bitim <b>${esc(heir.name)}</b>ga o‘tdi`, { from: d.owner, to: heir.name });
+        d.owner = heir.name; d.ownerId = heir.id;
+      });
+      const failed = await saveMany(ds);
+      if (failed.length) {
+        snap.forEach(([d, j]) => { if (failed.includes(d)) Object.assign(d, JSON.parse(j)); });
+        throw new Error(`${failed.length} ta bitimni o‘tkazib bo‘lmadi, foydalanuvchi o‘chirilmadi`);
+      }
+      if (!isDemo()) await usersApi({ action: "delete", id: m.id, transfer_to: heir.id });
+      MANAGERS = MANAGERS.filter(x => !same(x.id, m.id));
+      if (!isDemo()) await loadProfiles();
+      S.sel.clear();
+      closeModals();
+      refreshAll();
+      toast(`${m.name} o‘chirildi${ds.length ? `. ${plural(ds.length)} ${heir.name}ga o‘tdi` : ""}`, "success");
+    } catch (e) {
+      console.warn(e);
+      refreshAll();
+      const msg = e.message || "server xatosi";
+      if ($("#userModal").classList.contains("open")) { $("#u_err").textContent = "O‘chirib bo‘lmadi: " + msg; $("#u_err").classList.remove("hidden"); }
+      toast("O‘chirib bo‘lmadi: " + msg, "error");
+    }
+  });
+}
+ACT["user-del"] = el => { const id = el.dataset.mid || sid(U.id); deleteUser(MANAGERS.find(x => sid(x.id) === id)); };
 ACT["user-add"] = () => { if (isAdmin()) openUserModal(null); };
 ACT["user-edit"] = el => { const m = MANAGERS.find(x => sid(x.id) === el.dataset.mid); if (m && isAdmin()) openUserModal(m); };
 
