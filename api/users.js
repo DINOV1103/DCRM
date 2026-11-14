@@ -4,7 +4,8 @@
 // Vercel → Project → Settings → Environment Variables:
 //   SUPABASE_URL              (bor)
 //   SUPABASE_ANON_KEY         (bor)
-//   SUPABASE_SERVICE_ROLE_KEY (yangi: Supabase → Project Settings → API Keys → secret / service_role)
+//   SUPABASE_SERVICE_ROLE_KEY yoki SUPABASE_SECRET_KEY (Supabase → Project Settings → API Keys → secret)
+//   Supabase Vercel orqali ulangan bo‘lsa, SUPABASE_SECRET_KEY allaqachon bor — hech narsa qo‘shish shart emas.
 
 const PERM_KEYS = ['view_all', 'transfer', 'delete', 'export'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,11 +27,14 @@ function authMessage(text) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Faqat POST so‘rov qabul qilinadi' });
 
-  const URL = process.env.SUPABASE_URL;
-  const ANON = process.env.SUPABASE_ANON_KEY;
-  const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Vercel Marketplace orqali ulangan Supabase kalitlarni SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY
+  // nomi bilan o‘zi qo‘yadi — ikkala nom ham qabul qilinadi.
+  const env = process.env;
+  const URL = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  const ANON = env.SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const SERVICE = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
   if (!URL || !ANON || !SERVICE) {
-    return res.status(500).json({ ok: false, error: 'Serverda SUPABASE_SERVICE_ROLE_KEY o‘rnatilmagan (Vercel → Settings → Environment Variables)' });
+    return res.status(500).json({ ok: false, error: 'Serverda maxfiy kalit yo‘q: Vercel → Settings → Environment Variables’ga SUPABASE_SECRET_KEY (yoki SUPABASE_SERVICE_ROLE_KEY) qo‘shib, Redeploy qiling' });
   }
   const svc = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' };
 
