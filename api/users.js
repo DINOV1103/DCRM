@@ -1,11 +1,34 @@
-// DCRM: foydalanuvchi (menejer yoki admin) qo‘shish va parol o‘rnatish.
-// Faqat faol admin chaqira oladi. Brauzerda maxfiy kalit bo‘lmasligi uchun shu yerda bajariladi.
+// DCRM: foydalanuvchi (menejer yoki admin) qo‘shish, o‘chirish va parol o‘rnatish.
+// Faqat faol admin chaqira oladi. Maxfiy kalit brauzerda bo‘lmasligi uchun shu yerda bajariladi.
 //
-// Vercel → Project → Settings → Environment Variables:
-//   SUPABASE_URL              (bor)
-//   SUPABASE_ANON_KEY         (bor)
-//   SUPABASE_SERVICE_ROLE_KEY yoki SUPABASE_SECRET_KEY (Supabase → Project Settings → API Keys → secret)
-//   Supabase Vercel orqali ulangan bo‘lsa, SUPABASE_SECRET_KEY allaqachon bor — hech narsa qo‘shish shart emas.
+// Vercel → dcrm → Settings → Environment Variables’da bitta o‘zgaruvchi kerak:
+//   SUPABASE_SECRET_KEY = Supabase → Project Settings → API Keys → Secret keys (sb_secret_...)
+//   (eski nomi SUPABASE_SERVICE_ROLE_KEY ham qabul qilinadi). Qo‘shgandan keyin Redeploy shart.
+// Tekshirish: brauzerda https://<sayt>/api/users ni oching — kalit bor-yo‘qligi va turi ko‘rinadi (qiymati emas).
+
+// Sayt (index.html) ishlatadigan loyiha bilan bir xil bo‘lishi shart. Ikkalasi ham ochiq ma’lumot.
+const DCRM_REF = 'unbbfygomlgigqekxogp';
+const DCRM_URL = `https://${DCRM_REF}.supabase.co`;
+const DCRM_PUBLISHABLE = 'sb_publishable_rzfN2nF2tnGZy6ucDFkePg_ZTTBbwms';
+
+function secretFromEnv(env) {
+  return String(env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+}
+// Kalitning qiymatini emas, faqat turini aniqlaydi
+function keyInfo(k) {
+  if (!k) return { type: 'yo‘q', ok: false, note: 'Vercel’da SUPABASE_SECRET_KEY topilmadi. Qo‘shgan bo‘lsangiz — Redeploy qiling.' };
+  if (k.startsWith('sb_secret_')) return { type: 'sb_secret', ok: true };
+  if (k.startsWith('sb_publishable_')) return { type: 'sb_publishable', ok: false, note: 'Bu ochiq (publishable) kalit. Supabase → API Keys → Secret keys bo‘limidagi sb_secret_ kalitni qo‘ying.' };
+  if (k.startsWith('eyJ')) {
+    try {
+      const p = JSON.parse(Buffer.from(k.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+      if (p.ref && p.ref !== DCRM_REF) return { type: 'jwt:' + p.role, ok: false, note: 'Bu kalit boshqa Supabase loyihasiniki. DCRM loyihasining kalitini qo‘ying.' };
+      if (p.role !== 'service_role') return { type: 'jwt:' + p.role, ok: false, note: 'Bu anon kalit. Secret (yoki service_role) kalit kerak.' };
+      return { type: 'jwt:service_role', ok: true };
+    } catch (e) { return { type: 'buzilgan', ok: false, note: 'Kalit to‘liq ko‘chirilmagan. Qaytadan nusxalab qo‘ying.' }; }
+  }
+  return { type: 'noma’lum', ok: false, note: 'Kalit noto‘g‘ri ko‘chirilgan. Qaytadan nusxalab qo‘ying.' };
+}
 
 const PERM_KEYS = ['view_all', 'transfer', 'delete', 'export'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,18 +48,30 @@ function authMessage(text) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Faqat POST so‘rov qabul qilinadi' });
-
-  // Vercel Marketplace orqali ulangan Supabase kalitlarni SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY
-  // nomi bilan o‘zi qo‘yadi — ikkala nom ham qabul qilinadi.
   const env = process.env;
-  const URL = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
-  const ANON = env.SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const SERVICE = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
-  if (!URL || !ANON || !SERVICE) {
-    return res.status(500).json({ ok: false, error: 'Serverda maxfiy kalit yo‘q: Vercel → Settings → Environment Variables’ga SUPABASE_SECRET_KEY (yoki SUPABASE_SERVICE_ROLE_KEY) qo‘shib, Redeploy qiling' });
-  }
+  const URL = DCRM_URL, ANON = DCRM_PUBLISHABLE;
+  const SERVICE = secretFromEnv(env);
+  const info = keyInfo(SERVICE);
   const svc = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' };
+
+  // Holatni tekshirish (kalit qiymati qaytarilmaydi)
+  if (req.method === 'GET') {
+    let accepted = null;
+    if (info.ok) {
+      const t = await fetch(`${URL}/auth/v1/admin/users?page=1&per_page=1`, { headers: svc }).catch(() => null);
+      accepted = !!(t && t.ok);
+    }
+    const ready = info.ok && accepted === true;
+    return res.status(200).json({
+      ok: ready, version: 3, project: DCRM_REF,
+      found: { SUPABASE_SECRET_KEY: !!env.SUPABASE_SECRET_KEY, SUPABASE_SERVICE_ROLE_KEY: !!env.SUPABASE_SERVICE_ROLE_KEY },
+      secret_key_type: info.type, supabase_accepted_key: accepted,
+      message: ready ? 'Hammasi joyida: foydalanuvchi qo‘shish, o‘chirish va parol almashtirish ishlaydi.'
+        : (info.note || 'Supabase bu kalitni qabul qilmadi. DCRM loyihasining Secret keys bo‘limidan qaytadan nusxalang va Redeploy qiling.')
+    });
+  }
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Faqat POST so‘rov qabul qilinadi' });
+  if (!info.ok) return res.status(500).json({ ok: false, error: info.note });
 
   // 1) Kim chaqiryapti — faqat faol admin
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -45,7 +80,10 @@ export default async function handler(req, res) {
   if (!who.ok) return res.status(401).json({ ok: false, error: 'Sessiya tugagan, qayta kiring' });
   const me = await who.json();
   const pr = await fetch(`${URL}/rest/v1/profiles?id=eq.${encodeURIComponent(me.id)}&select=role,active`, { headers: svc });
-  const rows = pr.ok ? await pr.json() : [];
+  if (!pr.ok) {
+    return res.status(500).json({ ok: false, error: `Supabase maxfiy kalitni qabul qilmadi (${pr.status}). DCRM loyihasining Secret keys bo‘limidan qaytadan nusxalab qo‘ying va Redeploy qiling.` });
+  }
+  const rows = await pr.json();
   if (!rows[0] || rows[0].role !== 'admin' || rows[0].active === false) {
     return res.status(403).json({ ok: false, error: 'Bu amal faqat admin uchun' });
   }
