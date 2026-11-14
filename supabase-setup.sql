@@ -52,12 +52,14 @@ from auth.users u
 on conflict (id) do nothing;
 update public.profiles p set email = u.email from auth.users u where p.id = u.id and p.email is null;
 
--- Yangi foydalanuvchi yaratilganda profil avtomatik ochiladi (rol: menejer)
+-- Yangi foydalanuvchi yaratilganda profil avtomatik ochiladi: rol menejer, holati TO‘XTATILGAN.
+-- Admin DCRM → Jamoa orqali qo‘shganda server darhol faol qiladi. Kimdir saytdagi ochiq kalit bilan
+-- o‘zi ro‘yxatdan o‘tib olsa ham, admin faollashtirmaguncha hech narsa ko‘rmaydi va yoza olmaydi.
 create or replace function public.dcrm_handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, email, full_name)
-  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)))
+  insert into public.profiles (id, email, full_name, active)
+  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)), false)
   on conflict (id) do nothing;
   return new;
 end $$;

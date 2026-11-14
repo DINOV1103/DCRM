@@ -250,6 +250,15 @@ button.stage svg { opacity: .55; margin-left: -1px; }
 .sb-scrim { display: none; }
 
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+.demo-banner {
+  flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 8px 20px;
+  background: #FFF4D6; color: #6B4A00; border-bottom: 1px solid #F0D58A; font-size: 13.5px; font-weight: 600; z-index: 31;
+}
+.demo-banner[hidden] { display: none !important; }
+.demo-banner .demo-exit { background: #6B4A00; color: #fff; height: 30px; }
+.demo-banner .demo-exit:hover { filter: brightness(1.1); }
+.dark .demo-banner { background: #3A2E10; color: #F5D98B; border-color: #5C4A1A; }
+.dark .demo-banner .demo-exit { background: #F5D98B; color: #2A2108; }
 .topbar {
   height: var(--topbar-h); flex-shrink: 0; background: var(--surface); border-bottom: 1px solid var(--line);
   display: flex; align-items: center; gap: 14px; padding: 0 20px; z-index: 30;
@@ -687,11 +696,14 @@ span.owner-btn:hover { background: none; }
     </div>
     <div id="loginErr" class="auth-err hidden"></div>
     <button id="loginBtn" class="btn btn-primary" style="width:100%;height:42px;font-size:14.5px;">Tizimga kirish</button>
-    <div class="or-line">yoki</div>
-    <div class="lbl" style="text-align:center;margin-bottom:8px;">Demo ma’lumotlar bilan sinab ko‘rish</div>
-    <div class="form-grid" style="gap:8px;">
-      <button id="demoLoginBtn" class="btn btn-soft" style="height:40px;">Admin sifatida</button>
-      <button id="demoManagerBtn" class="btn btn-soft" style="height:40px;">Menejer sifatida</button>
+    <!-- Demo faqat ?demo havolasi bilan ko‘rinadi; u bazaga umuman tegmaydi -->
+    <div id="demoBox" hidden>
+      <div class="or-line">yoki</div>
+      <div class="lbl" style="text-align:center;margin-bottom:8px;">Demo: namunaviy ma’lumotlar, haqiqiy bazaga tegmaydi</div>
+      <div class="form-grid" style="gap:8px;">
+        <button id="demoLoginBtn" class="btn btn-soft" style="height:40px;">Demo: admin</button>
+        <button id="demoManagerBtn" class="btn btn-soft" style="height:40px;">Demo: menejer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -737,6 +749,10 @@ span.owner-btn:hover { background: none; }
 
 <!-- ======================= ASOSIY QISM ======================= -->
 <main class="main">
+  <div id="demoBanner" class="demo-banner" role="status" hidden>
+    <span class="grow">Demo rejim: namunaviy ma’lumotlar, hech narsa saqlanmaydi.</span>
+    <button class="btn btn-sm demo-exit" data-act="demo-exit">Chiqish</button>
+  </div>
   <header class="topbar">
     <button id="mobileMenuBtn" class="icon-btn" title="Menyu"><i data-ic="menu" data-s="20"></i></button>
     <h1 id="currentViewTitle">Bitimlar</h1>
@@ -3364,6 +3380,7 @@ function setConn(state) {
   const el = $("#connStatus");
   el.className = "sb-conn " + state;
   $("#connText").textContent = { on: "Onlayn, ma’lumotlar bazada", demo: "Demo rejim", off: "Server bilan aloqa yo‘q" }[state] || "";
+  $("#demoBanner").hidden = state !== "demo";
   el.title = $("#connText").textContent;
 }
 function renderUser() {
@@ -3488,12 +3505,14 @@ async function doLogout() {
     try { if (rtChannel) sb.removeChannel(rtChannel); rtChannel = null; await sb.auth.signOut(); } catch (e) { console.warn(e); }
   }
   DEALS = []; S.sel.clear(); isDemoMode = true;
+  $("#demoBanner").hidden = true;
   refreshAll();
   showAuth();
 }
 
 /* ======================= HODISALAR (bitta umumiy tinglovchi) ======================= */
 const ACT = {
+  "demo-exit": () => doLogout(),
   "new-deal": () => openDealModal(),
   "close-modal": () => closeModals(),
   "close-pop": () => Pop.close(),
@@ -3786,6 +3805,8 @@ async function initApp() {
     closeModals();
     changeOwner(assignIds, picked);
   };
+  // Demo kirish oynasida faqat maxsus havola bilan ko‘rinadi: https://…/?demo
+  $("#demoBox").hidden = !(new URLSearchParams(location.search).has("demo") || location.hash === "#demo");
   $("#demoLoginBtn").onclick = () => { enterDemo(false); playSound("success"); toast("Demo rejim (admin): o‘zgarishlar saqlanmaydi", "info"); };
   $("#demoManagerBtn").onclick = () => { enterDemo(true); playSound("success"); toast("Demo rejim (menejer): faqat o‘z bitimlari ko‘rinadi", "info"); };
   $("#saveUserBtn").onclick = saveUser;
