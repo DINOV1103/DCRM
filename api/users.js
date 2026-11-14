@@ -95,5 +95,45 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
+  // 4) Foydalanuvchini butunlay o‘chirish: avval bitimlari boshqa odamga o‘tadi, keyin hisob va profil o‘chadi
+  if (body.action === 'delete') {
+    const id = String(body.id || ''), to = String(body.transfer_to || '');
+    if (!UUID_RE.test(id)) return res.status(400).json({ ok: false, error: 'Foydalanuvchi topilmadi' });
+    if (!UUID_RE.test(to) || to === id) return res.status(400).json({ ok: false, error: 'Bitimlar kimga o‘tishini tanlang' });
+    if (id === me.id) return res.status(400).json({ ok: false, error: 'O‘zingizni o‘chira olmaysiz' });
+
+    const pq = await fetch(`${URL}/rest/v1/profiles?id=in.(${id},${to})&select=*`, { headers: svc });
+    const ps = pq.ok ? await pq.json() : [];
+    const target = ps.find(p => p.id === id), heir = ps.find(p => p.id === to);
+    if (!heir || heir.active === false) return res.status(400).json({ ok: false, error: 'Bitimlarni oladigan foydalanuvchi topilmadi yoki faol emas' });
+    if (target && target.role === 'admin' && target.active !== false) {
+      const aq = await fetch(`${URL}/rest/v1/profiles?role=eq.admin&active=is.true&id=neq.${id}&select=id`, { headers: svc });
+      const admins = aq.ok ? await aq.json() : [];
+      if (!admins.length) return res.status(400).json({ ok: false, error: 'Kamida bitta faol admin qolishi kerak' });
+    }
+
+    const heirName = heir.full_name || String(heir.email || '').split('@')[0] || 'Menejer';
+    const mv = await fetch(`${URL}/rest/v1/deals?owner_id=eq.${id}`, {
+      method: 'PATCH', headers: { ...svc, Prefer: 'return=minimal' },
+      body: JSON.stringify({ owner_id: to, owner: heirName })
+    });
+    if (!mv.ok) return res.status(500).json({ ok: false, error: 'Bitimlarni o‘tkazib bo‘lmadi, foydalanuvchi o‘chirilmadi: ' + (await mv.text()) });
+
+    // Avval profil (eski bazada profil hisobga "cascade"siz bog‘langan bo‘lsa ham to‘siq bo‘lmasin), keyin hisob.
+    if (target) {
+      const dp = await fetch(`${URL}/rest/v1/profiles?id=eq.${id}`, { method: 'DELETE', headers: { ...svc, Prefer: 'return=minimal' } });
+      if (!dp.ok) return res.status(500).json({ ok: false, error: 'Profilni o‘chirib bo‘lmadi: ' + (await dp.text()) });
+    }
+    const del = await fetch(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: svc });
+    if (!del.ok && del.status !== 404) {
+      const j = await del.json().catch(() => ({}));
+      if (target) {   // hisob o‘chmadi — profilni joyiga qaytaramiz
+        await fetch(`${URL}/rest/v1/profiles?on_conflict=id`, { method: 'POST', headers: { ...svc, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(target) });
+      }
+      return res.status(400).json({ ok: false, error: 'Hisobni o‘chirib bo‘lmadi: ' + (j.msg || j.message || j.error || del.status) });
+    }
+    return res.status(200).json({ ok: true });
+  }
+
   return res.status(400).json({ ok: false, error: 'Noma’lum amal' });
 }
